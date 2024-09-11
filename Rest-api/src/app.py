@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 # Configura la URI para conectar al cluster de MongoDB
 app.config['MONGO_URI'] = 'mongodb+srv://Martin:wnL9Q2Ruwf4WJGE0@campusfit.xih68.mongodb.net/?retryWrites=true&w=majority'
+app.config['MONGO_URI'] = 'mongodb+srv://Martin:wnL9Q2Ruwf4WJGE0@campusfit.xih68.mongodb.net/CampusFIT_DB?retryWrites=true&w=majority'
 
 mongo = PyMongo(app)
 
@@ -16,6 +17,7 @@ mongo = PyMongo(app)
 def create_user():
     try:
         username = request.json.get("username")
+        rut = request.json.get("rut")
         password = request.json.get("password")
         email = request.json.get("email")
 
@@ -25,9 +27,13 @@ def create_user():
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
             result = mongo.db.users.insert_one(
                 {'username': username, 'password': hashed_password.decode('utf-8'), 'email': email}
+            # Inserta en la colección 'Usuarios' de la base de datos 'CampusFIT_DB'
+            result = mongo.db.Usuarios.insert_one(
+                {'rut': rut, 'username': username, 'password': hashed_password.decode('utf-8'), 'email': email}
             )
             response = {
                 'id': str(result.inserted_id),
+                'rut': rut,
                 'username': username,
                 'email': email
             }
@@ -45,6 +51,8 @@ def delete_user(username):
     result = mongo.db.users.delete_one({'username': username})
     try:
         result = mongo.db.users.delete_one({'username': username})
+        # Elimina el usuario de la colección 'Usuarios'
+        result = mongo.db.Usuarios.delete_one({'username': username})
 
     if result.deleted_count > 0:
         return jsonify({"message": f"Usuario {username} eliminado correctamente"}), 200
@@ -74,6 +82,8 @@ def verify_user():
     else:
         return jsonify({"message": "Usuario o contraseña incorrectos"}), 401
         user = mongo.db.users.find_one({'username': username})
+        # Busca el usuario en la colección 'Usuarios'
+        user = mongo.db.Usuarios.find_one({'username': username})
         
         if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             return jsonify({"message": "Verificación exitosa"}), 200
@@ -108,6 +118,7 @@ def handle_exception(e):
     return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
     app.run(debug=True)if __name__ == '__main__':
+if __name__ == '__main__':
     try:
         app.run(debug=True)
     except ServerSelectionTimeoutError as e:
