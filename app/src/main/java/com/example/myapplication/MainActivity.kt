@@ -3,9 +3,8 @@ package com.example.myapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -15,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,11 +38,32 @@ fun MainScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .customBorder(20.dp, 8.dp, Color(0xFF33D1FF))
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
     ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .align(Alignment.TopCenter)
+                .background(Color(0xFF33D1FF)),
+            contentAlignment = Alignment.CenterStart
+        ) {
+
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(105.dp)
+                    .padding(start = 16.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 100.dp, bottom = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -51,14 +73,16 @@ fun MainScreen() {
             Spacer(modifier = Modifier.height(16.dp))
             CustomButton(text = "Eliminar Reserva")
         }
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .align(Alignment.BottomCenter)
+                .background(Color.Gray)
+        )
     }
-}
-
-
-fun Modifier.customBorder(vertical: Dp, horizontal: Dp, color: Color): Modifier {
-    return this
-        .border(BorderStroke(vertical, color), shape = RoundedCornerShape(0.dp))
-        .border(BorderStroke(horizontal, color), shape = RoundedCornerShape(0.dp))
 }
 
 @Composable
@@ -70,7 +94,7 @@ fun CustomButton(text: String) {
             .height(50.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Yellow
+            containerColor = Color(0xFF33D1FF)
         )
     ) {
         Text(text = text, color = Color.Black)
