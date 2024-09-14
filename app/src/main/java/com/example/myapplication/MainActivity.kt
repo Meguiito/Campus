@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
                     composable("login") { LoginForm(navController) }
                     composable("register") { RegisterScreen(navController) }
                     composable("mainScreen") { MainScreen(navController) }
+                    composable("reserva") { ReservaScreen() }
                 }
             }
         }

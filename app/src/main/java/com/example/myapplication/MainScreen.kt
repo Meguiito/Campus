@@ -27,7 +27,6 @@ fun MainScreen(navController: NavController) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-
         // Header with Logo
         Box(
             modifier = Modifier
@@ -55,7 +54,9 @@ fun MainScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CustomButton(text = "Realizar Reserva", onClick = { /* Navegar a otra pantalla */ })
+            CustomButton(text = "Realizar Reserva") {
+                navController.navigate("reserva")
+            }
             Spacer(modifier = Modifier.height(16.dp))
             CustomButton(text = "Editar Reserva", onClick = { /* Navegar a otra pantalla */ })
             Spacer(modifier = Modifier.height(16.dp))
