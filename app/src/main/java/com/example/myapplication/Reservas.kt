@@ -13,10 +13,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservaScreen() {
+fun ReservaScreen(navController: NavController) {
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
     var carrera by remember { mutableStateOf("") }
@@ -88,91 +91,82 @@ fun ReservaScreen() {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Selector de Cancha o Gimnasio
-            ExposedDropdownMenuBoxField(
-                label = "Seleccionar Cancha o Gimnasio",
-                options = canchas,
-                selectedOption = canchaSeleccionada,
-                onOptionSelected = { canchaSeleccionada = it }
-            )
+            // Selector de Cancha
+            ExposedDropdownMenuBox(
+                expanded = canchaSeleccionada.isNotEmpty(),
+                onExpandedChange = { canchaSeleccionada = canchaSeleccionada.takeIf { it.isEmpty() } ?: "" }
+            ) {
+                OutlinedTextField(
+                    value = canchaSeleccionada,
+                    onValueChange = { canchaSeleccionada = it },
+                    label = { Text("Seleccionar Cancha") },
+                    readOnly = true,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = canchaSeleccionada.isNotEmpty())
+                    }
+                )
+
+                ExposedDropdownMenu(
+                    expanded = canchaSeleccionada.isNotEmpty(),
+                    onDismissRequest = { canchaSeleccionada = "" }
+                ) {
+                    canchas.forEach { cancha ->
+                        DropdownMenuItem(
+                            text = { Text(cancha) },
+                            onClick = {
+                                canchaSeleccionada = cancha
+                            }
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             // Selector de Duración
-            ExposedDropdownMenuBoxField(
-                label = "Duración",
-                options = duraciones,
-                selectedOption = duracionSeleccionada,
-                onOptionSelected = { duracionSeleccionada = it }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón para enviar
-            Button(
-                onClick = { /* TODO: Implementar funcionalidad de reserva */ },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(50.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF33D1FF)
-                )
+            ExposedDropdownMenuBox(
+                expanded = duracionSeleccionada.isNotEmpty(),
+                onExpandedChange = { duracionSeleccionada = duracionSeleccionada.takeIf { it.isEmpty() } ?: "" }
             ) {
-                Text(text = "Confirmar Reserva", color = Color.Black)
-            }
-        }
-
-        // Barra inferior
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .align(Alignment.BottomCenter)
-                .background(Color.Gray)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExposedDropdownMenuBoxField(
-    label: String,
-    options: List<String>,
-    selectedOption: String,
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf(selectedOption) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = { },
-            readOnly = true,
-            label = { Text(label) },
-            modifier = Modifier
-                .menuAnchor() // Importante para posicionar el menú correctamente
-                .fillMaxWidth(),
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            }
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        selectedText = option
-                        onOptionSelected(option)
-                        expanded = false
+                OutlinedTextField(
+                    value = duracionSeleccionada,
+                    onValueChange = { duracionSeleccionada = it },
+                    label = { Text("Seleccionar Duración") },
+                    readOnly = true,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = duracionSeleccionada.isNotEmpty())
                     }
                 )
+
+                ExposedDropdownMenu(
+                    expanded = duracionSeleccionada.isNotEmpty(),
+                    onDismissRequest = { duracionSeleccionada = "" }
+                ) {
+                    duraciones.forEach { duracion ->
+                        DropdownMenuItem(
+                            text = { Text(duracion) },
+                            onClick = {
+                                duracionSeleccionada = duracion
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón para realizar la reserva
+            Button(
+                onClick = {
+                    // Lógica para realizar la reserva
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Realizar Reserva")
             }
         }
     }
@@ -182,6 +176,6 @@ fun ExposedDropdownMenuBoxField(
 @Composable
 fun ReservaScreenPreview() {
     MyApplicationTheme {
-        ReservaScreen()
+        ReservaScreen(navController = rememberNavController())
     }
 }

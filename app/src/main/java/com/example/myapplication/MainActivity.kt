@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,12 +23,37 @@ class MainActivity : ComponentActivity() {
                 // Create a NavController
                 val navController = rememberNavController()
 
+                // State to manage login status
+                var isLoggedIn by remember { mutableStateOf(false) }
+
                 // Set up the NavHost
-                NavHost(navController = navController, startDestination = "login") {
-                    composable("login") { LoginForm(navController) }
+                NavHost(navController = navController, startDestination = if (isLoggedIn) "mainScreen" else "login") {
+                    composable("login") {
+                        LoginForm(navController)
+                        // Update the login status on successful login
+                        LaunchedEffect(navController) {
+                            navController.currentBackStackEntryFlow.collect { backStackEntry ->
+                                if (backStackEntry.destination.route == "mainScreen") {
+                                    isLoggedIn = true
+                                }
+                            }
+                        }
+                    }
                     composable("register") { RegisterScreen(navController) }
-                    composable("mainScreen") { MainScreen(navController) }
-                    composable("reserva") { ReservaScreen() }
+                    composable("mainScreen") {
+                        MainScreen(
+                            navController = navController,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = {
+                                isLoggedIn = false
+                                navController.navigate("login") {
+                                    // Clear the back stack to prevent returning to the previous screen
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                    composable("reserva") { ReservaScreen(navController) }
                 }
             }
         }
