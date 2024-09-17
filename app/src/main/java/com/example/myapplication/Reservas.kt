@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,85 +28,34 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
     var rut by remember { mutableStateOf("") }
     var carrera by remember { mutableStateOf("") }
 
-    var expanded by remember { mutableStateOf(false) } // Estado del dropdown menu
     var canchaSeleccionada by remember { mutableStateOf("") }
     var duracionSeleccionada by remember { mutableStateOf("") }
+    var canchas by remember { mutableStateOf(listOf<String>()) }
+    var duraciones = listOf("1 Hora", "2 Horas", "3 Horas")
+    var expandedCancha by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
 
-    val canchas = listOf("Cancha de Futbol", "Cancha de Basquetbol", "Gimnasio")
-    val duraciones = listOf("1 Hora", "2 Horas", "3 Horas")
+    val coroutineScope = rememberCoroutineScope()
+
+    // Carga las canchas desde la API
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            try {
+                val response = RetrofitInstance.api.getEspacios()
+                canchas = response
+            } catch (e: Exception) {
+                errorMessage = "Error al cargar canchas: ${e.localizedMessage}"
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Barra superior con el logo
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .align(Alignment.TopCenter)
-                .background(Color(0xFF33D1FF)),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "Logo",
-                modifier = Modifier
-                    .size(105.dp)
-                    .padding(start = 16.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        // Dropdown menu para usuarios logueados
-        if (isLoggedIn) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-            ) {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        value = "Menu",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Menu") },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(0.3f),
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        }
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Inicio") },
-                            onClick = {
-                                navController.navigate("mainScreen")
-                                expanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Cerrar sesión") },
-                            onClick = {
-                                onLogout()
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // Contenido del formulario
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -110,7 +63,15 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Campos del formulario de reserva
+            // Mensajes de error o éxito
+            if (errorMessage != null) {
+                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
+            }
+            if (successMessage != null) {
+                Text(text = successMessage!!, color = Color.Green)
+            }
+
+            // Campos del formulario
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -137,8 +98,8 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
 
             // Selector de Cancha
             ExposedDropdownMenuBox(
-                expanded = canchaSeleccionada.isNotEmpty(),
-                onExpandedChange = { canchaSeleccionada = canchaSeleccionada.takeIf { it.isEmpty() } ?: "" }
+                expanded = expandedCancha,
+                onExpandedChange = { expandedCancha = !expandedCancha }
             ) {
                 OutlinedTextField(
                     value = canchaSeleccionada,
@@ -149,19 +110,20 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         .menuAnchor()
                         .fillMaxWidth(),
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = canchaSeleccionada.isNotEmpty())
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCancha)
                     }
                 )
 
                 ExposedDropdownMenu(
-                    expanded = canchaSeleccionada.isNotEmpty(),
-                    onDismissRequest = { canchaSeleccionada = "" }
+                    expanded = expandedCancha,
+                    onDismissRequest = { expandedCancha = false }
                 ) {
                     canchas.forEach { cancha ->
                         DropdownMenuItem(
                             text = { Text(cancha) },
                             onClick = {
                                 canchaSeleccionada = cancha
+                                expandedCancha = false
                             }
                         )
                     }
@@ -170,9 +132,10 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
             Spacer(modifier = Modifier.height(16.dp))
 
             // Selector de Duración
+            var expandedDuracion by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
-                expanded = duracionSeleccionada.isNotEmpty(),
-                onExpandedChange = { duracionSeleccionada = duracionSeleccionada.takeIf { it.isEmpty() } ?: "" }
+                expanded = expandedDuracion,
+                onExpandedChange = { expandedDuracion = !expandedDuracion }
             ) {
                 OutlinedTextField(
                     value = duracionSeleccionada,
@@ -183,19 +146,20 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         .menuAnchor()
                         .fillMaxWidth(),
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = duracionSeleccionada.isNotEmpty())
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDuracion)
                     }
                 )
 
                 ExposedDropdownMenu(
-                    expanded = duracionSeleccionada.isNotEmpty(),
-                    onDismissRequest = { duracionSeleccionada = "" }
+                    expanded = expandedDuracion,
+                    onDismissRequest = { expandedDuracion = false }
                 ) {
                     duraciones.forEach { duracion ->
                         DropdownMenuItem(
                             text = { Text(duracion) },
                             onClick = {
                                 duracionSeleccionada = duracion
+                                expandedDuracion = false
                             }
                         )
                     }
@@ -205,20 +169,37 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
 
             Button(
                 onClick = {
-                    // Lógica para realizar la reserva
+                    if (nombre.isNotEmpty() && rut.isNotEmpty() && carrera.isNotEmpty() && canchaSeleccionada.isNotEmpty() && duracionSeleccionada.isNotEmpty()) {
+                        coroutineScope.launch {
+                            isLoading = true
+                            try {
+                                val response = RetrofitInstance.api.crearReserva(
+                                    ReservaRequest(
+                                        nombre = nombre,
+                                        rut = rut,
+                                        carrera = carrera,
+                                        cancha = canchaSeleccionada,
+                                        duracion = duracionSeleccionada
+                                    )
+                                )
+                                successMessage = "Reserva realizada con éxito"
+                                errorMessage = null
+                            } catch (e: Exception) {
+                                errorMessage = "Error al realizar la reserva: ${e.localizedMessage}"
+                                successMessage = null
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    } else {
+                        errorMessage = "Todos los campos son obligatorios"
+                    }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
-                Text("Realizar Reserva")
+                Text(if (isLoading) "Guardando..." else "Realizar Reserva")
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ReservaScreenPreview() {
-    MyApplicationTheme {
-        ReservaScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {})
     }
 }
