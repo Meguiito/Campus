@@ -19,16 +19,15 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservaScreen(navController: NavController) {
+fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit) {
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
     var carrera by remember { mutableStateOf("") }
 
-    // Inicializar valores de selección con el primer elemento de las listas
+    var expanded by remember { mutableStateOf(false) } // Estado del dropdown menu
     var canchaSeleccionada by remember { mutableStateOf("") }
     var duracionSeleccionada by remember { mutableStateOf("") }
 
-    // Listas de opciones
     val canchas = listOf("Cancha de Futbol", "Cancha de Basquetbol", "Gimnasio")
     val duraciones = listOf("1 Hora", "2 Horas", "3 Horas")
 
@@ -56,6 +55,53 @@ fun ReservaScreen(navController: NavController) {
             )
         }
 
+        // Dropdown menu para usuarios logueados
+        if (isLoggedIn) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        value = "Menu",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Menu") },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(0.3f),
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        }
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Inicio") },
+                            onClick = {
+                                navController.navigate("mainScreen")
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Cerrar sesión") },
+                            onClick = {
+                                onLogout()
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
         // Contenido del formulario
         Column(
             modifier = Modifier
@@ -64,7 +110,7 @@ fun ReservaScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Campo de Nombre y Apellido
+            // Campos del formulario de reserva
             OutlinedTextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -73,7 +119,6 @@ fun ReservaScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de RUT
             OutlinedTextField(
                 value = rut,
                 onValueChange = { rut = it },
@@ -82,7 +127,6 @@ fun ReservaScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de Carrera en Curso
             OutlinedTextField(
                 value = carrera,
                 onValueChange = { carrera = it },
@@ -159,7 +203,6 @@ fun ReservaScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón para realizar la reserva
             Button(
                 onClick = {
                     // Lógica para realizar la reserva
@@ -176,6 +219,6 @@ fun ReservaScreen(navController: NavController) {
 @Composable
 fun ReservaScreenPreview() {
     MyApplicationTheme {
-        ReservaScreen(navController = rememberNavController())
+        ReservaScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {})
     }
 }
