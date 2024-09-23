@@ -93,6 +93,17 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                     .fillMaxSize()
                     .background(Color.White)
             ) {
+                // Fondo de la sección entre las barras
+                Image(
+                    painter = painterResource(id = R.drawable.uctinformatica),
+                    contentDescription = "Fondo",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 60.dp, bottom = 50.dp)
+                        .align(Alignment.TopStart), 
+                    contentScale = ContentScale.FillHeight
+                )
+
                 // Barra superior con el logo
                 Box(
                     modifier = Modifier
@@ -138,12 +149,14 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         Text(text = successMessage!!, color = Color.Green)
                     }
 
-                    // Campos del formulario
+                    // Campos del formulario con fondo blanco
                     OutlinedTextField(
                         value = nombre,
                         onValueChange = { nombre = it },
                         label = { Text("Nombre y Apellido") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, shape = RoundedCornerShape(4.dp))
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -151,7 +164,9 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         value = rut,
                         onValueChange = { rut = it },
                         label = { Text("RUT") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, shape = RoundedCornerShape(4.dp))
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -159,11 +174,13 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         value = carrera,
                         onValueChange = { carrera = it },
                         label = { Text("Carrera en Curso") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, shape = RoundedCornerShape(4.dp))
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Selector de Cancha
+                    // Selector de Cancha con fondo blanco
                     ExposedDropdownMenuBox(
                         expanded = expandedCancha,
                         onExpandedChange = { expandedCancha = !expandedCancha }
@@ -175,7 +192,8 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                             readOnly = true,
                             modifier = Modifier
                                 .menuAnchor()
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .background(Color.White, shape = RoundedCornerShape(4.dp)),
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCancha)
                             }
@@ -198,7 +216,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Selector de Duración
+                    // Selector de Duración con fondo blanco
                     var expandedDuracion by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = expandedDuracion,
@@ -211,7 +229,8 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                             readOnly = true,
                             modifier = Modifier
                                 .menuAnchor()
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .background(Color.White, shape = RoundedCornerShape(4.dp)),
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDuracion)
                             }

@@ -7,8 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
-import com.example.myapplication.R
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +82,16 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                         contentScale = ContentScale.Fit
                     )
                 }
+
+                // Fondo de la sección entre las barras
+                Image(
+                    painter = painterResource(id = R.drawable.uctinformatica),
+                    contentDescription = "Fondo",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 60.dp, bottom = 50.dp),
+                    contentScale = ContentScale.Crop
+                )
 
                 // Main Buttons
                 Column(
