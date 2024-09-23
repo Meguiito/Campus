@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -90,6 +93,25 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                     .fillMaxSize()
                     .background(Color.White)
             ) {
+                // Barra superior con el logo
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .align(Alignment.TopCenter)
+                        .background(Color(0xFF33D1FF)),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier
+                            .size(105.dp)
+                            .padding(start = 16.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
                 // Icono para abrir el Drawer
                 IconButton(
                     onClick = { scope.launch { drawerState.open() } },
@@ -104,7 +126,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp, top = 100.dp),
+                        .padding(16.dp, top = 80.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -246,6 +268,15 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         Text(if (isLoading) "Guardando..." else "Realizar Reserva")
                     }
                 }
+
+                // Barra inferior
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(Color.Gray)
+                )
             }
         }
     )
