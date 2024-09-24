@@ -102,7 +102,7 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                     verticalArrangement = Arrangement.Center
                 ) {
                     CustomButton(text = "Realizar Reserva") {
-                        navController.navigate("reserva")
+                        navController.navigate("calendario")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     CustomButton(text = "Editar Reserva", onClick = { /* Navegar a otra pantalla */ })
