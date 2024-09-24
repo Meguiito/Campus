@@ -133,7 +133,7 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     )
 
                     CalendarView { selectedDate ->
-                        // Acciones al seleccionar una fecha
+                        navController.navigate("reserva")
                     }
                 }
 
