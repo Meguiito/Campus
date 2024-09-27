@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 import bcrypt
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
+from bson import ObjectId
 
 app = Flask(__name__)
 
@@ -107,6 +108,26 @@ def crear_reserva():
             return jsonify({"message": "Reserva creada exitosamente", "id": str(result.inserted_id)}), 201
         else:
             return jsonify({"error": "Todos los campos son obligatorios"}), 400
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+def cancelar_reserva():
+    try:
+        # Recibe el JSON que contiene el _id dentro de "$oid"
+        reserva_id = request.json.get("_id", {}).get("$oid")
+
+        if not reserva_id:
+            return jsonify({"error": "El ID de la reserva es obligatorio o está mal formateado"}), 400
+
+        # Convertir el id a ObjectId para eliminar
+        result = mongo.db.Reservas.delete_one({'_id': ObjectId(reserva_id)})
+
+        if result.deleted_count > 0:
+            return jsonify({"message": "Reserva cancelada exitosamente"}), 200
+        else:
+            return jsonify({"error": "Reserva no encontrada"}), 404
 
     except PyMongoError as e:
         return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
