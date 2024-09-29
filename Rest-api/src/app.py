@@ -3,6 +3,7 @@ from flask_pymongo import PyMongo
 import bcrypt
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 from bson import ObjectId
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -11,6 +12,20 @@ app.config['MONGO_URI'] = 'mongodb+srv://Martin:wnL9Q2Ruwf4WJGE0@campusfit.xih68
 
 mongo = PyMongo(app)
 
+# Decorador para verificar si el usuario es administrador
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        username = request.json.get("username")  # Obtener el nombre del usuario
+        user = mongo.db.Usuarios.find_one({'username': username})
+
+        if user and user.get('rol') == 'admin':
+            return f(*args, **kwargs)  # Si es admin, ejecuta la función
+        else:
+            return jsonify({"error": "Acceso denegado. Solo los administradores pueden realizar esta acción."}), 403
+    return decorated_function
+
+# Crear un nuevo usuario
 @app.route('/users', methods=['POST'])
 def create_user():
     try:
@@ -18,6 +33,7 @@ def create_user():
         rut = request.json.get("rut")
         password = request.json.get("password")
         email = request.json.get("email")
+        rol = request.json.get("rol", "usuario")  # 'usuario' por defecto
 
         # Verifica que los campos no estén vacíos
         if username and password and email:
@@ -25,13 +41,14 @@ def create_user():
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
             # Inserta en la colección 'Usuarios' de la base de datos 'CampusFIT_DB'
             result = mongo.db.Usuarios.insert_one(
-                {'rut': rut, 'username': username, 'password': hashed_password.decode('utf-8'), 'email': email}
+                {'rut': rut, 'username': username, 'password': hashed_password.decode('utf-8'), 'email': email, 'rol': rol}
             )
             response = {
                 'id': str(result.inserted_id),
                 'rut': rut,
                 'username': username,
-                'email': email
+                'email': email,
+                'rol': rol
             }
             return jsonify(response), 201 
         else:
@@ -42,7 +59,9 @@ def create_user():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
+# Eliminar un usuario (solo administradores)
 @app.route('/users/<username>', methods=['DELETE'])
+@admin_required
 def delete_user(username):
     try:
         # Elimina el usuario de la colección 'Usuarios'
@@ -57,6 +76,7 @@ def delete_user(username):
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
+# Verificar usuario
 @app.route('/users/verify', methods=['POST'])
 def verify_user():
     try:
@@ -74,6 +94,7 @@ def verify_user():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
+# Obtener lista de espacios (canchas)
 @app.route('/espacios', methods=['GET'])
 def get_espacios():
     try:
@@ -86,7 +107,7 @@ def get_espacios():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-
+# Crear una reserva
 @app.route('/reservas', methods=['POST'])
 def crear_reserva():
     try:
@@ -113,6 +134,9 @@ def crear_reserva():
         return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+    
+# Cancelar una reserva
+@app.route('/reservas/cancelar', methods=['DELETE'])
 def cancelar_reserva():
     try:
         # Recibe el JSON que contiene el _id dentro de "$oid"
@@ -134,7 +158,30 @@ def cancelar_reserva():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
+# Cambiar el rol de un usuario (solo administradores)
+@app.route('/users/<username>/rol', methods=['PUT'])
+@admin_required
+def update_user_role(username):
+    try:
+        new_role = request.json.get("rol")
+        if new_role:
+            result = mongo.db.Usuarios.update_one(
+                {'username': username}, {'$set': {'rol': new_role}}
+            )
 
+            if result.matched_count > 0:
+                return jsonify({"message": f"Rol de {username} actualizado a {new_role}"}), 200
+            else:
+                return jsonify({"error": "Usuario no encontrado"}), 404
+        else:
+            return jsonify({"error": "El rol es obligatorio"}), 400
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Manejo de errores 404
 @app.errorhandler(404)
 def not_found(error=None):
     message = {
@@ -143,6 +190,7 @@ def not_found(error=None):
     }
     return jsonify(message), 404
 
+# Manejo de errores 500
 @app.errorhandler(500)
 def server_error(error=None):
     message = {
@@ -161,5 +209,3 @@ if __name__ == '__main__':
         app.run(debug=True)
     except ServerSelectionTimeoutError as e:
         print(f"Error de conexión a MongoDB: {e}")
-
-
