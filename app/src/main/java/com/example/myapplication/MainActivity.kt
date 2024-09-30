@@ -49,11 +49,15 @@ class MainActivity : ComponentActivity() {
                             onLogout = onLogout
                         )
                     }
-                    composable("reserva") {
+                    composable("reserva/{mes}/{dia}") { backStackEntry ->
+                        val mes = backStackEntry.arguments?.getString("mes")?: 1
+                        val dia = backStackEntry.arguments?.getString("dia")?: 1
                         ReservaScreen(
                             navController = navController,
                             isLoggedIn = isLoggedIn,
-                            onLogout = onLogout
+                            onLogout = onLogout,
+                            mesSeleccionado = mes.toString(),
+                            diaSeleccionado = dia.toString()
                         )
                     }
                     // Añadir la nueva pantalla del calendario

@@ -29,6 +29,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.*
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,12 +37,16 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
+    val currentMonth = remember {
+        YearMonth.now().month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    }
+    var selectedDay by remember { mutableStateOf<LocalDate?>(null) } // Guardar el día seleccionado
+
     if (!isLoggedIn) {
-        navController.navigate("login") // Redirigir al login si no está logeado
+        navController.navigate("login")
         return
     }
 
-    // Lateral Drawer
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -78,7 +83,6 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                // Fondo de la sección entre las barras
                 Image(
                     painter = painterResource(id = R.drawable.uctinformatica),
                     contentDescription = "Fondo",
@@ -89,7 +93,6 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     contentScale = ContentScale.FillHeight
                 )
 
-                // Barra superior con el logo
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -108,7 +111,6 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     )
                 }
 
-                // Icono para abrir el Drawer
                 IconButton(
                     onClick = { coroutineScope.launch { drawerState.open() } },
                     modifier = Modifier
@@ -118,7 +120,6 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
                 }
 
-                // Contenido del calendario
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -133,11 +134,13 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     )
 
                     CalendarView { selectedDate ->
-                        navController.navigate("reserva")
+                        selectedDay = selectedDate
+                        // Pasar el mes y el día seleccionados al navegar a la pantalla de reserva
+                        navController.navigate("reserva/${currentMonth}/${selectedDay?.dayOfMonth}")
+
                     }
                 }
 
-                // Barra inferior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -149,7 +152,6 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
         }
     )
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarView(onDateSelected: (LocalDate) -> Unit) {

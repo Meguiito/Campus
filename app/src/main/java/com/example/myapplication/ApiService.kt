@@ -7,7 +7,7 @@ import retrofit2.http.POST
 import retrofit2.http.GET
 
 // URL a la API en localhost
-private const val BASE_URL = "http://10.0.2.2:5000/"
+private const val BASE_URL = "http://192.168.1.5:5000/"
 
 interface ApiService {
     @POST("users")
@@ -38,7 +38,9 @@ data class ReservaRequest(
     val rut: String,
     val carrera: String,
     val cancha: String,
-    val duracion: String
+    val duracion: String,
+    val mes: String,
+    val dia: String
 )
 
 data class UserRequest(val rut: String, val username: String, val password: String, val email: String)

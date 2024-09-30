@@ -24,27 +24,29 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit) {
+fun ReservaScreen(
+    navController: NavController,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
+    mesSeleccionado: String,
+    diaSeleccionado: String
+) {
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
     var carrera by remember { mutableStateOf("") }
-
     var canchaSeleccionada by remember { mutableStateOf("") }
     var duracionSeleccionada by remember { mutableStateOf("") }
     var canchas by remember { mutableStateOf(listOf<String>()) }
-    var duraciones = listOf("1 Hora", "2 Horas", "3 Horas")
+    var duraciones = listOf("10:00 a 11:30", "11:30 a 13:00", "13:00 a 14:30", "14:30 a 16:00", "16:00 a 17:30")
     var expandedCancha by remember { mutableStateOf(false) }
+    var expandedDuracion by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Lateral Drawer
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    // Carga las canchas desde la API
+    // Cargar las canchas desde la API
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
@@ -56,7 +58,10 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
         }
     }
 
-    // Estructura principal
+    // Lateral Drawer
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -100,7 +105,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 60.dp, bottom = 50.dp)
-                        .align(Alignment.TopStart), 
+                        .align(Alignment.TopStart),
                     contentScale = ContentScale.FillHeight
                 )
 
@@ -149,14 +154,12 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         Text(text = successMessage!!, color = Color.Green)
                     }
 
-                    // Campos del formulario con fondo blanco
+                    // Campos del formulario
                     OutlinedTextField(
                         value = nombre,
                         onValueChange = { nombre = it },
                         label = { Text("Nombre y Apellido") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -164,9 +167,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         value = rut,
                         onValueChange = { rut = it },
                         label = { Text("RUT") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -174,13 +175,30 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         value = carrera,
                         onValueChange = { carrera = it },
                         label = { Text("Carrera en Curso") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, shape = RoundedCornerShape(4.dp))
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Selector de Cancha con fondo blanco
+                    // Campos para seleccionar día y mes
+                    OutlinedTextField(
+                        value = diaSeleccionado.toString(),
+                        onValueChange = { /* No permitir cambios directos, solo mostrar */ },
+                        label = { Text("Día de Reserva") },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = mesSeleccionado.toString(),
+                        onValueChange = { /* No permitir cambios directos, solo mostrar */ },
+                        label = { Text("Mes de Reserva") },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Selector de Cancha
                     ExposedDropdownMenuBox(
                         expanded = expandedCancha,
                         onExpandedChange = { expandedCancha = !expandedCancha }
@@ -190,10 +208,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                             onValueChange = { canchaSeleccionada = it },
                             label = { Text("Seleccionar Cancha") },
                             readOnly = true,
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                                .background(Color.White, shape = RoundedCornerShape(4.dp)),
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCancha)
                             }
@@ -216,8 +231,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Selector de Duración con fondo blanco
-                    var expandedDuracion by remember { mutableStateOf(false) }
+                    // Selector de Duración
                     ExposedDropdownMenuBox(
                         expanded = expandedDuracion,
                         onExpandedChange = { expandedDuracion = !expandedDuracion }
@@ -227,10 +241,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                             onValueChange = { duracionSeleccionada = it },
                             label = { Text("Seleccionar Duración") },
                             readOnly = true,
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                                .background(Color.White, shape = RoundedCornerShape(4.dp)),
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDuracion)
                             }
@@ -255,7 +266,7 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
 
                     Button(
                         onClick = {
-                            if (nombre.isNotEmpty() && rut.isNotEmpty() && carrera.isNotEmpty() && canchaSeleccionada.isNotEmpty() && duracionSeleccionada.isNotEmpty()) {
+                            if (nombre.isNotEmpty() && rut.isNotEmpty() && carrera.isNotEmpty() && canchaSeleccionada.isNotEmpty() && duracionSeleccionada.isNotEmpty()&& diaSeleccionado.isNotEmpty()&& mesSeleccionado.isNotEmpty()) {
                                 coroutineScope.launch {
                                     isLoading = true
                                     try {
@@ -265,7 +276,9 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                                                 rut = rut,
                                                 carrera = carrera,
                                                 cancha = canchaSeleccionada,
-                                                duracion = duracionSeleccionada
+                                                duracion = duracionSeleccionada,
+                                                mes = mesSeleccionado,
+                                                dia = diaSeleccionado
                                             )
                                         )
                                         successMessage = "Reserva realizada con éxito"
@@ -294,8 +307,11 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color.Gray)
-                )
+                        .background(Color(0xFF33D1FF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Universidad catolica de temuco, 2024", color = Color.White)
+                }
             }
         }
     )
@@ -305,6 +321,12 @@ fun ReservaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: (
 @Composable
 fun ReservaScreenPreview() {
     MyApplicationTheme {
-        ReservaScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {})
+        ReservaScreen(
+            navController = rememberNavController(),
+            isLoggedIn = true,
+            onLogout = {},
+            mesSeleccionado = "0",
+            diaSeleccionado = "1"
+        )
     }
 }
