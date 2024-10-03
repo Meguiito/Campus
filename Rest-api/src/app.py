@@ -7,7 +7,6 @@ from functools import wraps
 
 app = Flask(__name__)
 
-# Configura la URI para conectar al cluster de MongoDB
 app.config['MONGO_URI'] = 'mongodb+srv://Martin:wnL9Q2Ruwf4WJGE0@campusfit.xih68.mongodb.net/CampusFIT_DB?retryWrites=true&w=majority'
 
 mongo = PyMongo(app)
@@ -16,11 +15,11 @@ mongo = PyMongo(app)
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        username = request.json.get("username")  # Obtener el nombre del usuario
+        username = request.json.get("username") 
         user = mongo.db.Usuarios.find_one({'username': username})
 
         if user and user.get('rol') == 'admin':
-            return f(*args, **kwargs)  # Si es admin, ejecuta la función
+            return f(*args, **kwargs)  
         else:
             return jsonify({"error": "Acceso denegado. Solo los administradores pueden realizar esta acción."}), 403
     return decorated_function
@@ -33,13 +32,11 @@ def create_user():
         rut = request.json.get("rut")
         password = request.json.get("password")
         email = request.json.get("email")
-        rol = request.json.get("rol", "usuario")  # 'usuario' por defecto
+        rol = request.json.get("rol", "usuario")  
 
-        # Verifica que los campos no estén vacíos
         if username and password and email:
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-            # Inserta en la colección 'Usuarios' de la base de datos 'CampusFIT_DB'
             result = mongo.db.Usuarios.insert_one(
                 {'rut': rut, 'username': username, 'password': hashed_password.decode('utf-8'), 'email': email, 'rol': rol}
             )
@@ -59,12 +56,11 @@ def create_user():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-# Eliminar un usuario (solo administradores)
+# Eliminar un usuario (admins)
 @app.route('/users/<username>', methods=['DELETE'])
 @admin_required
 def delete_user(username):
     try:
-        # Elimina el usuario de la colección 'Usuarios'
         result = mongo.db.Usuarios.delete_one({'username': username})
 
         if result.deleted_count > 0:
@@ -94,7 +90,7 @@ def verify_user():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-# Obtener lista de espacios (canchas)
+# Obtener lista de canchas de la base de datos
 @app.route('/espacios', methods=['GET'])
 def get_espacios():
     try:
@@ -139,13 +135,11 @@ def crear_reserva():
 @app.route('/reservas/cancelar', methods=['DELETE'])
 def cancelar_reserva():
     try:
-        # Recibe el JSON que contiene el _id dentro de "$oid"
         reserva_id = request.json.get("_id", {}).get("$oid")
 
         if not reserva_id:
             return jsonify({"error": "El ID de la reserva es obligatorio o está mal formateado"}), 400
 
-        # Convertir el id a ObjectId para eliminar
         result = mongo.db.Reservas.delete_one({'_id': ObjectId(reserva_id)})
 
         if result.deleted_count > 0:
@@ -199,13 +193,50 @@ def server_error(error=None):
     }
     return jsonify(message), 500
 
-# Maneja errores generales
+# Manejo errores generales
 @app.errorhandler(Exception)
 def handle_exception(e):
     return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-if __name__ == '__main__':
+@app.route('/articulos/<articulo_id>', methods=['PUT'])
+@admin_required
+def editar_articulo(articulo_id):
     try:
-        app.run(debug=True)
-    except ServerSelectionTimeoutError as e:
-        print(f"Error de conexión a MongoDB: {e}")
+        nombre = request.json.get("nombre")
+        descripcion = request.json.get("descripcion")
+        precio = request.json.get("precio")
+
+        if nombre and descripcion and precio:
+            result = mongo.db.Articulos.update_one(
+                {'_id': ObjectId(articulo_id)},
+                {'$set': {'nombre': nombre, 'descripcion': descripcion, 'precio': precio}}
+            )
+            if result.matched_count > 0:
+                return jsonify({"message": "Artículo actualizado correctamente"}), 200
+            else:
+                return jsonify({"error": "Artículo no encontrado"}), 404
+        else:
+            return jsonify({"error": "Todos los campos son obligatorios"}), 400
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Eliminar un artículo (solo administradores)
+@app.route('/articulos/<articulo_id>', methods=['DELETE'])
+@admin_required
+def eliminar_articulo(articulo_id):
+    try:
+        result = mongo.db.Articulos.delete_one({'_id': ObjectId(articulo_id)})
+
+        if result.deleted_count > 0:
+            return jsonify({"message": "Artículo eliminado exitosamente"}), 200
+        else:
+            return jsonify({"error": "Artículo no encontrado"}), 404
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
