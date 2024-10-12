@@ -112,14 +112,19 @@ def crear_reserva():
         carrera = request.json.get("carrera")
         cancha = request.json.get("cancha")
         duracion = request.json.get("duracion")
+        mes = request.json.get("mes")
+        dia = request.json.get("dia")
 
-        if nombre and rut and carrera and cancha and duracion:
+        if nombre and rut and carrera and cancha and duracion and mes and dia:
             reserva = {
                 'nombre': nombre,
                 'rut': rut,
                 'carrera': carrera,
                 'cancha': cancha,
-                'duracion': duracion
+                'duracion': duracion,
+                'mes': mes,
+                'dia': dia
+
             }
             result = mongo.db.Reservas.insert_one(reserva)
             return jsonify({"message": "Reserva creada exitosamente", "id": str(result.inserted_id)}), 201
