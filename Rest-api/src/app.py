@@ -222,7 +222,60 @@ def editar_articulo(articulo_id):
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-# Eliminar un artículo (solo administradores)
+@app.route('/users/<username>', methods=['PUT'])
+def editar_perfil(username):
+    try:
+        new_username = request.json.get("new_username")
+        new_email = request.json.get("email")
+        new_password = request.json.get("password")
+        new_rut = request.json.get("rut")
+        
+        update_fields = {}
+
+        if new_username:
+            update_fields['username'] = new_username
+        if new_email:
+            update_fields['email'] = new_email
+        if new_password:
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), salt)
+            update_fields['password'] = hashed_password.decode('utf-8')
+        if new_rut:
+            update_fields['rut'] = new_rut
+        
+        if not update_fields:
+            return jsonify({"error": "No se ha proporcionado ningún campo para actualizar"}), 400
+
+        result = mongo.db.Usuarios.update_one({'username': username}, {'$set': update_fields})
+
+        if result.matched_count > 0:
+            return jsonify({"message": "Perfil actualizado correctamente"}), 200
+        else:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@app.route('/users/<username>', methods=['DELETE'])
+@admin_required 
+def eliminar_usuario(username):
+    try:
+        result = mongo.db.Usuarios.delete_one({'username': username})
+
+        if result.deleted_count > 0:
+            return jsonify({"message": f"Usuario {username} eliminado correctamente"}), 200
+        else:
+            return jsonify({"error": f"Usuario {username} no encontrado"}), 404
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+
+
 @app.route('/articulos/<articulo_id>', methods=['DELETE'])
 @admin_required
 def eliminar_articulo(articulo_id):
