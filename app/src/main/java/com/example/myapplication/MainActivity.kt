@@ -83,6 +83,8 @@ class MainActivity : ComponentActivity() {
                             username = username,
                             email = email,
                             rut = rut,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout,
                             navController = navController
                         )
                     }
