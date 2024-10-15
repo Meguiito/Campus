@@ -280,17 +280,20 @@ def eliminar_usuario(username):
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
 # Obtener el perfil del usuario
-@app.route('/users/<username>', methods=['GET'])
-def get_user_profile(username):
+@app.route('/users/getByEmail', methods=['POST'])
+def get_user_by_email():
     try:
-        user = mongo.db.Usuarios.find_one({'username': username}, {'password': 0})  # Excluir el password
+        email = request.json.get("email")
+        user = mongo.db.Usuarios.find_one({"email": email}, {"username": 1, "email": 1, "rut": 1})
+        
         if user:
-            user['_id'] = str(user['_id'])
-            return jsonify(user), 200
+            return jsonify({
+                "username": user["username"],
+                "email": user["email"],  
+                "rut": user["rut"]       
+            }), 200
         else:
             return jsonify({"error": "Usuario no encontrado"}), 404
-    except PyMongoError as e:
-        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
