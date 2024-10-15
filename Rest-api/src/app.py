@@ -314,5 +314,57 @@ def eliminar_articulo(articulo_id):
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
+
+# Obtener todas las reservas de un usuario basado en el RUT
+@app.route('/reservas/<rut>', methods=['GET'])
+def obtener_reservas_por_rut(rut):
+    try:
+        reservas = mongo.db.Reservas.find({"rut": rut})
+        reservas_list = []
+        
+        for reserva in reservas:
+            reservas_list.append({
+                "id": str(reserva["_id"]),
+                "nombre": reserva["nombre"],
+                "rut": reserva["rut"],
+                "carrera": reserva["carrera"],
+                "cancha": reserva["cancha"],
+                "duracion": reserva["duracion"],
+                "mes": reserva["mes"],
+                "dia": reserva["dia"]
+            })
+
+        return jsonify(reservas_list), 200
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Actualizar una reserva por su ID
+@app.route('/reservas/<id>', methods=['PUT'])
+def actualizar_reserva(id):
+    try:
+        data = request.json
+        reserva = mongo.db.Reservas.find_one({"_id": ObjectId(id)})
+        
+        if reserva:
+            mongo.db.Reservas.update_one(
+                {"_id": ObjectId(id)},
+                {"$set": {
+                    "nombre": data.get("nombre", reserva["nombre"]),
+                    "rut": data.get("rut", reserva["rut"]),
+                    "carrera": data.get("carrera", reserva["carrera"]),
+                    "cancha": data.get("cancha", reserva["cancha"]),
+                    "duracion": data.get("duracion", reserva["duracion"]),
+                    "mes": data.get("mes", reserva["mes"]),
+                    "dia": data.get("dia", reserva["dia"])
+                }}
+            )
+            return jsonify({"message": "Reserva actualizada correctamente"}), 200
+        else:
+            return jsonify({"error": "Reserva no encontrada"}), 404
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
