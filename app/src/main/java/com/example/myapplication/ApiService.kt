@@ -7,7 +7,7 @@ import retrofit2.http.POST
 import retrofit2.http.GET
 
 // URL a la API en localhost
-private const val BASE_URL = "http://192.168.1.5:5000/"
+private const val BASE_URL = "http://192.168.1.10:5000/"
 
 interface ApiService {
     @POST("users")
@@ -21,6 +21,9 @@ interface ApiService {
 
     @POST("reservas")
     suspend fun crearReserva(@Body reserva: ReservaRequest): ApiResponse
+
+    @POST("/users/getByEmail")
+    suspend fun getUserByEmail(@Body emailRequest: EmailRequest): UserResponse
 }
 
 object RetrofitInstance {
@@ -32,6 +35,16 @@ object RetrofitInstance {
             .create(ApiService::class.java)
     }
 }
+
+data class EmailRequest(
+    val email: String
+)
+
+data class UserResponse(
+    val username: String,
+    val email: String,
+    val rut: String
+)
 
 data class ReservaRequest(
     val nombre: String,

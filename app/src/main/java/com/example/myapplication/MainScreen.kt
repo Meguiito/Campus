@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit) {
+fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit, username: String, email: String, rut: String) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
@@ -52,6 +52,14 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                         selected = false,
                         onClick = {
                             onLogout()
+                            coroutineScope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Perfil") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate("perfil/$username/$email/$rut")
                             coroutineScope.launch { drawerState.close() }
                         }
                     )
@@ -153,6 +161,6 @@ fun CustomButton(text: String, onClick: () -> Unit) {
 @Composable
 fun MainScreenPreview() {
     MyApplicationTheme {
-        MainScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {})
+        MainScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {}, email = "", username = "",rut="")
     }
 }

@@ -19,7 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginForm(navController: NavController) {
+fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String) -> Unit) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var isLoading by remember { mutableStateOf(false) }
@@ -92,7 +92,7 @@ fun LoginForm(navController: NavController) {
                 )
             }
 
-            // Botón de login con color actualizado
+            // Botón de login
             Button(
                 onClick = {
                     if (email.text.isNotEmpty() && password.text.isNotEmpty()) {
@@ -106,7 +106,12 @@ fun LoginForm(navController: NavController) {
                                     )
                                 )
                                 if (response.error == null) {
-                                    navController.navigate("mainScreen")
+                                    // Nueva llamada para obtener el usuario por correo
+                                    val userInfo = RetrofitInstance.api.getUserByEmail(
+                                        EmailRequest(email.text)
+                                    )
+                                    // Llama al callback con el username, email y rut
+                                    onLoginSuccess(userInfo.username, userInfo.email, userInfo.rut)
                                 } else {
                                     errorMessage = response.error
                                 }
@@ -134,7 +139,7 @@ fun LoginForm(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Enlace para ir a la pantalla de registro con color actualizado
+            // Enlace para ir a la pantalla de registro
             TextButton(onClick = {
                 navController.navigate("register")
             }) {
@@ -150,5 +155,5 @@ fun LoginForm(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun LoginFormPreview() {
-    LoginForm(navController = rememberNavController())
+    LoginForm(navController = rememberNavController()) { _, _, _ -> }
 }

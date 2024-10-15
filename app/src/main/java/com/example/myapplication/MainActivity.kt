@@ -30,15 +30,19 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Variables para almacenar información del usuario
+                var username by remember { mutableStateOf("") }
+                var email by remember { mutableStateOf("") }
+                var rut by remember { mutableStateOf("") }
+
                 NavHost(navController = navController, startDestination = if (isLoggedIn) "mainScreen" else "login") {
                     composable("login") {
-                        LoginForm(navController)
-                        LaunchedEffect(navController) {
-                            navController.currentBackStackEntryFlow.collect { backStackEntry ->
-                                if (backStackEntry.destination.route == "mainScreen") {
-                                    isLoggedIn = true
-                                }
-                            }
+                        LoginForm(navController) { user, userEmail, userRut ->
+                            isLoggedIn = true
+                            username = user
+                            email = userEmail
+                            rut = userRut // Asegúrate de que esta variable reciba el RUT
+                            navController.navigate("mainScreen")
                         }
                     }
                     composable("register") { RegisterScreen(navController) }
@@ -46,26 +50,40 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             navController = navController,
                             isLoggedIn = isLoggedIn,
-                            onLogout = onLogout
+                            onLogout = onLogout,
+                            username = username,
+                            email = email,
+                            rut = rut
                         )
                     }
                     composable("reserva/{mes}/{dia}") { backStackEntry ->
-                        val mes = backStackEntry.arguments?.getString("mes")?: 1
-                        val dia = backStackEntry.arguments?.getString("dia")?: 1
+                        val mes = backStackEntry.arguments?.getString("mes") ?: "1"
+                        val dia = backStackEntry.arguments?.getString("dia") ?: "1"
                         ReservaScreen(
                             navController = navController,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
-                            mesSeleccionado = mes.toString(),
-                            diaSeleccionado = dia.toString()
+                            mesSeleccionado = mes,
+                            diaSeleccionado = dia
                         )
                     }
-                    // Añadir la nueva pantalla del calendario
                     composable("calendario") {
                         CalendarScreen(
                             navController = navController,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout
+                        )
+                    }
+                    // Nueva pantalla para el perfil del usuario
+                    composable("perfil/{username}/{email}/{rut}") { backStackEntry ->
+                        val username = backStackEntry.arguments?.getString("username") ?: ""
+                        val email = backStackEntry.arguments?.getString("email") ?: ""
+                        val rut = backStackEntry.arguments?.getString("rut") ?: ""
+                        PerfilScreen(
+                            username = username,
+                            email = email,
+                            rut = rut,
+                            navController = navController
                         )
                     }
                 }
