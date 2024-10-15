@@ -113,7 +113,7 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                         navController.navigate("calendario")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    CustomButton(text = "Editar Reserva", onClick = { /* Navegar a otra pantalla */ })
+                    CustomButton(text = "Editar Reserva", onClick = { navController.navigate("editarReserva") })
                     Spacer(modifier = Modifier.height(16.dp))
                     CustomButton(text = "Eliminar Reserva", onClick = { /* Navegar a otra pantalla */ })
                 }

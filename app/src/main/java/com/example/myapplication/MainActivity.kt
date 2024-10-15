@@ -88,6 +88,9 @@ class MainActivity : ComponentActivity() {
                             navController = navController
                         )
                     }
+                    composable("editarReserva") {
+                        EditarReservaScreen(navController = navController, rut = rut)
+                    }
                 }
             }
         }

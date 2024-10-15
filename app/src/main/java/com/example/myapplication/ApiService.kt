@@ -5,6 +5,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.GET
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 // URL a la API en localhost
 private const val BASE_URL = "http://192.168.1.10:5000/"
@@ -24,6 +26,17 @@ interface ApiService {
 
     @POST("/users/getByEmail")
     suspend fun getUserByEmail(@Body emailRequest: EmailRequest): UserResponse
+
+    @GET("reservas/{rut}")
+    suspend fun getReservasByRut(@Path("rut") rut: String): List<ReservaResponse>
+
+    @PUT("reservas/{id}")
+    suspend fun updateReserva(
+        @Path("id") id: String,
+        @Body reserva: ReservaRequest
+    ): ApiResponse
+
+
 }
 
 object RetrofitInstance {
@@ -47,6 +60,16 @@ data class UserResponse(
 )
 
 data class ReservaRequest(
+    val nombre: String,
+    val rut: String,
+    val carrera: String,
+    val cancha: String,
+    val duracion: String,
+    val mes: String,
+    val dia: String
+)
+data class ReservaResponse(
+    val id: String,
     val nombre: String,
     val rut: String,
     val carrera: String,
