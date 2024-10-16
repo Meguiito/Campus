@@ -3,6 +3,7 @@ package com.example.myapplication
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 import retrofit2.http.GET
 import retrofit2.http.PUT
@@ -27,6 +28,9 @@ interface ApiService {
     @POST("/users/getByEmail")
     suspend fun getUserByEmail(@Body emailRequest: EmailRequest): UserResponse
 
+    @GET("reservas")
+    suspend fun getReservas(): List<ReservaResponse>
+
     @GET("reservas/{rut}")
     suspend fun getReservasByRut(@Path("rut") rut: String): List<ReservaResponse>
 
@@ -35,6 +39,12 @@ interface ApiService {
         @Path("id") id: String,
         @Body reserva: ReservaRequest
     ): ApiResponse
+
+    @DELETE("reservas/{id}")
+    suspend fun deleteReserva(@Path("id") id: String): ApiResponse
+
+    @GET("reservas/mes/{mes}")
+    suspend fun getReservasMes(@Path("mes") mes: String): DiasReservadosResponse
 
 
 }
@@ -57,6 +67,10 @@ data class UserResponse(
     val username: String,
     val email: String,
     val rut: String
+)
+
+data class DiasReservadosResponse(
+    val dias_reservados: List<Int>
 )
 
 data class ReservaRequest(

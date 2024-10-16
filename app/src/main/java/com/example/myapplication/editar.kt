@@ -13,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,16 +108,17 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                         .fillMaxWidth()
                         .height(60.dp)
                         .align(Alignment.TopCenter)
-                        .background(Color(0xFF33D1FF)),
+                        .background(Color(0xFFFCC40A)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(105.dp)
-                            .padding(start = 16.dp),
-                        contentScale = ContentScale.Fit
+                            .size(115.dp)
+                            .offset(x = (-5).dp)
+                            .padding(start = 0.dp, top = 10.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
 
@@ -329,10 +333,16 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xFF33D1FF)),
+                        .background(Color(0xCC2B2B2B)),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Universidad Católica de Temuco, 2024", color = Color.White)
+                )
+                {
+                    Text(
+                        text = "© 2024 Universidad Católica de Temuco",
+                        color = Color.White,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

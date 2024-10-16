@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +31,6 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.*
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +41,19 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
     val currentMonth = remember {
         YearMonth.now().month.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
-    var selectedDay by remember { mutableStateOf<LocalDate?>(null) } // Guardar el día seleccionado
+
+    var diasReservados by remember { mutableStateOf(listOf<Int>()) } // Lista de días reservados
+    var selectedDay by remember { mutableStateOf<LocalDate?>(null) }
+
+    LaunchedEffect(currentMonth) {
+        // Llamada a la API para obtener los días reservados del mes actual
+        try {
+            val response = RetrofitInstance.api.getReservasMes(currentMonth)
+            diasReservados = response.dias_reservados
+        } catch (e: Exception) {
+            println("Error al obtener reservas: ${e.message}")
+        }
+    }
 
     if (!isLoggedIn) {
         navController.navigate("login")
@@ -98,16 +111,17 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         .fillMaxWidth()
                         .height(60.dp)
                         .align(Alignment.TopCenter)
-                        .background(Color(0xFF33D1FF)),
+                        .background(Color(0xFFFCC40A)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
                         modifier = Modifier
-                            .size(105.dp)
-                            .padding(start = 16.dp),
-                        contentScale = ContentScale.Fit
+                            .size(115.dp)
+                            .offset(x = (-5).dp)
+                            .padding(start = 0.dp, top = 10.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
 
@@ -129,15 +143,15 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                 ) {
                     Text(
                         text = "Calendario de Reservas",
+                        color = Color.White,
                         fontSize = 24.sp,
                         modifier = Modifier.padding(16.dp)
                     )
 
-                    CalendarView { selectedDate ->
+                    // Llamada al calendario con los días reservados
+                    CalendarView(diasReservados) { selectedDate ->
                         selectedDay = selectedDate
-                        // Pasar el mes y el día seleccionados al navegar a la pantalla de reserva
                         navController.navigate("reserva/${currentMonth}/${selectedDay?.dayOfMonth}")
-
                     }
                 }
 
@@ -146,20 +160,29 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color.Gray)
+                        .background(Color(0xCC2B2B2B)),
+                    contentAlignment = Alignment.Center
                 )
+                {
+                    Text(
+                        text = "© 2024 Universidad Católica de Temuco",
+                        color = Color.White,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     )
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CalendarView(onDateSelected: (LocalDate) -> Unit) {
+fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit) {
     val currentDate = remember { LocalDate.now() }
     val currentMonth = remember { YearMonth.now() }
     val daysInMonth = remember { currentMonth.lengthOfMonth() }
 
-    // Estado para el día seleccionado
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
     Column {
@@ -170,11 +193,12 @@ fun CalendarView(onDateSelected: (LocalDate) -> Unit) {
             Text(
                 text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()) + " " + currentMonth.year,
                 fontSize = 20.sp,
+                color = Color.White,
                 modifier = Modifier.padding(16.dp)
             )
         }
 
-        for (week in 0..5) { // Cambiar a 5 para que cubra todas las semanas del mes
+        for (week in 0..5) { // Cambiar a 5 para cubrir todas las semanas del mes
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -184,35 +208,40 @@ fun CalendarView(onDateSelected: (LocalDate) -> Unit) {
                 for (day in 1..7) {
                     val dayOfMonth = week * 7 + day
                     if (dayOfMonth <= daysInMonth) {
+                        val currentDateInMonth = currentMonth.atDay(dayOfMonth)
+                        val isReservado = dayOfMonth in diasReservados
+                        val isPastDate = currentDateInMonth.isBefore(currentDate)
+
                         Box(
                             modifier = Modifier
-                                .size(50.dp) // Aumentar el tamaño del cuadro
+                                .size(50.dp)
                                 .background(
                                     when {
-                                        // Marcar el día seleccionado
-                                        selectedDate == currentMonth.atDay(dayOfMonth) -> Color.Yellow
-                                        dayOfMonth == currentDate.dayOfMonth -> Color.LightGray
-                                        else -> Color.LightGray
+                                        isReservado -> Color.Gray // Día reservado
+                                        selectedDate == currentDateInMonth -> Color.Yellow // Día seleccionado
+                                        isPastDate -> Color.LightGray // Día pasado
+                                        dayOfMonth == currentDate.dayOfMonth -> Color.Cyan // Día actual
+                                        else -> Color.White // Días normales
                                     }, RoundedCornerShape(8.dp)
                                 )
-                                .padding(4.dp), // Ajustar el padding interno
+                                .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = dayOfMonth.toString(),
-                                color = if (selectedDate == currentMonth.atDay(dayOfMonth)) Color.White else Color.Black, // Cambiar color de texto si está seleccionado
+                                color = if (selectedDate == currentDateInMonth) Color.White else Color.Black,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clickable {
-                                        selectedDate = currentMonth.atDay(dayOfMonth) // Actualizar el día seleccionado
+                                    .clickable(enabled = !isReservado && !isPastDate) { // Deshabilitar días reservados y pasados
+                                        selectedDate = currentDateInMonth
                                         onDateSelected(selectedDate!!)
                                     },
                                 textAlign = TextAlign.Center,
-                                fontSize = 18.sp // Aumentar tamaño de texto
+                                fontSize = 18.sp
                             )
                         }
                     } else {
-                        Spacer(modifier = Modifier.size(50.dp)) // Ajustar espacio para días vacíos
+                        Spacer(modifier = Modifier.size(50.dp)) // Espacio para los días vacíos
                     }
                 }
             }

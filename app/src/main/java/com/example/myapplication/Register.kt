@@ -40,16 +40,17 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .background(Color(0xFFffffff)),
+                .background(Color(0xFFFCC40A)),
             contentAlignment = Alignment.CenterStart
         ) {
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(105.dp)
-                    .padding(start = 16.dp),
-                contentScale = ContentScale.Fit
+                    .size(115.dp)
+                    .offset(x = (-5).dp)
+                    .padding(start = 0.dp, top = 10.dp),
+                contentScale = ContentScale.Crop
             )
         }
 
