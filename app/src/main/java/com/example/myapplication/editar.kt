@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit) {
+fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String) {
     var reservas by remember { mutableStateOf<List<ReservaResponse>>(emptyList()) }
     var selectedReserva by remember { mutableStateOf<ReservaResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -37,6 +37,7 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
     var duracionSeleccionada by remember { mutableStateOf("") }
     val duraciones = listOf("10:00 a 11:30", "11:30 a 13:00", "13:00 a 14:30", "14:30 a 16:00", "16:00 a 17:30")
     val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
     // Obtener las reservas basadas en el rut del usuario
     LaunchedEffect(rut) {
@@ -44,9 +45,6 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
             try {
                 isLoading = true
                 reservas = RetrofitInstance.api.getReservasByRut(rut)
-                if (reservas.isNotEmpty()) {
-                    selectedReserva = reservas.first() // Selecciona la primera reserva para editar
-                }
                 canchas = RetrofitInstance.api.getEspacios() // Obtener las canchas
                 errorMessage = null
             } catch (e: Exception) {
@@ -77,6 +75,14 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                     }
                 )
                 NavigationDrawerItem(
+                    label = { Text("Perfil") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate("perfil/$username/$email/$rut")
+                        coroutineScope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
                     label = { Text("Cerrar sesión") },
                     selected = false,
                     onClick = {
@@ -102,7 +108,7 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                     contentScale = ContentScale.FillHeight
                 )
 
-                // Barra superior
+                // Barra superior fija
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -126,217 +132,208 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                     onClick = { scope.launch { drawerState.open() } },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(16.dp)
+                        .padding(16.dp) ,
                 ) {
                     Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
                 }
 
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                } else if (errorMessage != null) {
-                    Text(errorMessage ?: "Error desconocido", color = MaterialTheme.colorScheme.error)
-                } else if (selectedReserva != null) {
-                    val reserva = selectedReserva!!
+                // Espacio debajo de la barra superior
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Spacer(modifier = Modifier.height(70.dp)) // Añade un espacio debajo de la barra
 
-                    // Variables para los campos editables
-                    var nombre by remember { mutableStateOf(reserva.nombre) }
-                    var carrera by remember { mutableStateOf(reserva.carrera) }
-                    var canchaSeleccionada by remember { mutableStateOf(reserva.cancha) }
-                    var mes by remember { mutableStateOf(reserva.mes) }
-                    var dia by remember { mutableStateOf(reserva.dia) }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp, top = 80.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        OutlinedTextField(
-                            value = nombre,
-                            onValueChange = { nombre = it },
-                            label = { Text("Nombre y Apellido") },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White,
-                                cursorColor = Color.White,
-                                containerColor = Color.Gray,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-                            value = carrera,
-                            onValueChange = { carrera = it },
-                            label = { Text("Carrera en Curso") },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White,
-                                cursorColor = Color.White,
-                                containerColor = Color.Gray,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-                            value = dia.toString(),
-                            onValueChange = { /* No permitir cambios directos */ },
-                            label = { Text("Día de Reserva") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White,
-                                cursorColor = Color.White,
-                                containerColor = Color.Gray,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-                            value = mes.toString(),
-                            onValueChange = { /* No permitir cambios directos */ },
-                            label = { Text("Mes de Reserva") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White,
-                                cursorColor = Color.White,
-                                containerColor = Color.Gray,
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Selector de Cancha
-                        ExposedDropdownMenuBox(
-                            expanded = expandedCancha,
-                            onExpandedChange = { expandedCancha = !expandedCancha }
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    } else if (errorMessage != null) {
+                        Text(errorMessage ?: "Error desconocido", color = MaterialTheme.colorScheme.error)
+                    } else if (reservas.isNotEmpty()) {
+                        // Lista de reservas con botón Editar para cada una
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Top
                         ) {
-                            OutlinedTextField(
-                                value = canchaSeleccionada,
-                                onValueChange = { canchaSeleccionada = it },
-                                label = { Text("Seleccionar Cancha") },
-                                readOnly = true,
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCancha)
-                                },
-                                colors = TextFieldDefaults.outlinedTextFieldColors(
-                                    focusedLabelColor = Color.White,
-                                    unfocusedLabelColor = Color.White,
-                                    cursorColor = Color.White,
-                                    containerColor = Color.Gray,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
-                                )
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = expandedCancha,
-                                onDismissRequest = { expandedCancha = false }
-                            ) {
-                                canchas.forEach { cancha ->
-                                    DropdownMenuItem(
-                                        text = { Text(cancha) },
-                                        onClick = {
-                                            canchaSeleccionada = cancha
-                                            expandedCancha = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Selector de Duración
-                        ExposedDropdownMenuBox(
-                            expanded = expandedDuracion,
-                            onExpandedChange = { expandedDuracion = !expandedDuracion }
-                        ) {
-                            OutlinedTextField(
-                                value = duracionSeleccionada,
-                                onValueChange = { duracionSeleccionada = it },
-                                label = { Text("Seleccionar Duración") },
-                                readOnly = true,
-                                modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDuracion)
-                                },
-                                colors = TextFieldDefaults.outlinedTextFieldColors(
-                                    focusedLabelColor = Color.White,
-                                    unfocusedLabelColor = Color.White,
-                                    cursorColor = Color.White,
-                                    containerColor = Color.Gray,
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White
-                                )
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = expandedDuracion,
-                                onDismissRequest = { expandedDuracion = false }
-                            ) {
-                                duraciones.forEach { duracion ->
-                                    DropdownMenuItem(
-                                        text = { Text(duracion) },
-                                        onClick = {
-                                            duracionSeleccionada = duracion
-                                            expandedDuracion = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    try {
-                                        val updatedReserva = ReservaRequest(
-                                            nombre = nombre,
-                                            rut = reserva.rut,
-                                            carrera = carrera,
-                                            cancha = canchaSeleccionada,
-                                            duracion = duracionSeleccionada,
-                                            mes = mes,
-                                            dia = dia
-                                        )
-                                        RetrofitInstance.api.updateReserva(reserva.id, updatedReserva)
-                                        navController.popBackStack()
-                                    } catch (e: Exception) {
-                                        errorMessage = "Error al actualizar la reserva: ${e.localizedMessage}"
+                            reservas.forEach { reserva ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Mes: ${reserva.mes}, Día: ${reserva.dia}", fontSize = 18.sp,color=Color.White)
+                                    Button(onClick = { selectedReserva = reserva }) {
+                                        Text("Editar")
                                     }
                                 }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Actualizar")
+                            }
+
+                            // Si se ha seleccionado una reserva, mostrar el formulario de edición
+                            selectedReserva?.let { reserva ->
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Variables para los campos editables
+                                var nombre by remember { mutableStateOf(reserva.nombre) }
+                                var carrera by remember { mutableStateOf(reserva.carrera) }
+                                var canchaSeleccionada by remember { mutableStateOf(reserva.cancha) }
+                                var mes by remember { mutableStateOf(reserva.mes) }
+                                var dia by remember { mutableStateOf(reserva.dia) }
+
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    OutlinedTextField(
+                                        value = nombre,
+                                        onValueChange = { nombre = it },
+                                        label = { Text("Nombre y Apellido") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                                            focusedLabelColor = Color.White,
+                                            unfocusedLabelColor = Color.White,
+                                            cursorColor = Color.White,
+                                            containerColor = Color.Gray,
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.White
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    OutlinedTextField(
+                                        value = carrera,
+                                        onValueChange = { carrera = it },
+                                        label = { Text("Carrera en Curso") },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                                            focusedLabelColor = Color.White,
+                                            unfocusedLabelColor = Color.White,
+                                            cursorColor = Color.White,
+                                            containerColor = Color.Gray,
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.White
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    ExposedDropdownMenuBox(
+                                        expanded = expandedCancha,
+                                        onExpandedChange = { expandedCancha = !expandedCancha }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = canchaSeleccionada,
+                                            onValueChange = { canchaSeleccionada = it },
+                                            label = { Text("Seleccionar Cancha") },
+                                            readOnly = true,
+                                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCancha)
+                                            },
+                                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                                focusedLabelColor = Color.White,
+                                                unfocusedLabelColor = Color.White,
+                                                cursorColor = Color.White,
+                                                containerColor = Color.Gray,
+                                                focusedTextColor = Color.White,
+                                                unfocusedTextColor = Color.White
+                                            )
+                                        )
+
+                                        ExposedDropdownMenu(
+                                            expanded = expandedCancha,
+                                            onDismissRequest = { expandedCancha = false }
+                                        ) {
+                                            canchas.forEach { cancha ->
+                                                DropdownMenuItem(
+                                                    text = { Text(cancha) },
+                                                    onClick = {
+                                                        canchaSeleccionada = cancha
+                                                        expandedCancha = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    ExposedDropdownMenuBox(
+                                        expanded = expandedDuracion,
+                                        onExpandedChange = { expandedDuracion = !expandedDuracion }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = duracionSeleccionada,
+                                            onValueChange = { duracionSeleccionada = it },
+                                            label = { Text("Seleccionar Duración") },
+                                            readOnly = true,
+                                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDuracion)
+                                            },
+                                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                                focusedLabelColor = Color.White,
+                                                unfocusedLabelColor = Color.White,
+                                                cursorColor = Color.White,
+                                                containerColor = Color.Gray,
+                                                focusedTextColor = Color.White,
+                                                unfocusedTextColor = Color.White
+                                            )
+                                        )
+
+                                        ExposedDropdownMenu(
+                                            expanded = expandedDuracion,
+                                            onDismissRequest = { expandedDuracion = false }
+                                        ) {
+                                            duraciones.forEach { duracion ->
+                                                DropdownMenuItem(
+                                                    text = { Text(duracion) },
+                                                    onClick = {
+                                                        duracionSeleccionada = duracion
+                                                        expandedDuracion = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                try {
+                                                    val updatedReserva = ReservaRequest(
+                                                        nombre = nombre,
+                                                        rut = reserva.rut,
+                                                        carrera = carrera,
+                                                        cancha = canchaSeleccionada,
+                                                        duracion = duracionSeleccionada,
+                                                        mes = mes,
+                                                        dia = dia
+                                                    )
+                                                    RetrofitInstance.api.updateReserva(reserva.id, updatedReserva)
+                                                    navController.popBackStack()
+                                                } catch (e: Exception) {
+                                                    errorMessage = "Error al actualizar la reserva: ${e.localizedMessage}"
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Guardar cambios")
+                                    }
+                                }
+                            }
                         }
+                    } else {
+                        Text("No se encontraron reservas.")
                     }
                 }
-
-                // Barra inferior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xCC2B2B2B)),
+                        .background(Color(0xFF0F0147)),
                     contentAlignment = Alignment.Center
-                )
-                {
+                ) {
                     Text(
                         text = "© 2024 Universidad Católica de Temuco",
                         color = Color.White,
@@ -349,6 +346,7 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
     )
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun EditarReservaScreenPreview() {
@@ -357,7 +355,9 @@ fun EditarReservaScreenPreview() {
             navController = rememberNavController(),
             isLoggedIn = true,
             onLogout = {},
-            rut = ""
+            rut = "",
+            username = "",
+            email = ""
         )
     }
 }

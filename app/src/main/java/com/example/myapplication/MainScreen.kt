@@ -50,18 +50,18 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                         }
                     )
                     NavigationDrawerItem(
-                        label = { Text("Cerrar sesión") },
-                        selected = false,
-                        onClick = {
-                            onLogout()
-                            coroutineScope.launch { drawerState.close() }
-                        }
-                    )
-                    NavigationDrawerItem(
                         label = { Text("Perfil") },
                         selected = false,
                         onClick = {
                             navController.navigate("perfil/$username/$email/$rut")
+                            coroutineScope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Cerrar sesión") },
+                        selected = false,
+                        onClick = {
+                            onLogout()
                             coroutineScope.launch { drawerState.close() }
                         }
                     )
@@ -136,7 +136,7 @@ fun MainScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xCC2B2B2B)),
+                        .background(Color(0xFF0F0147)),
                     contentAlignment = Alignment.Center
                 )
                 {

@@ -8,9 +8,10 @@ import retrofit2.http.POST
 import retrofit2.http.GET
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 // URL a la API en localhost
-private const val BASE_URL = "http://192.168.4.1:5000/"
+private const val BASE_URL = "http://192.168.1.10:5000/"
 
 interface ApiService {
     @POST("users")
@@ -44,8 +45,17 @@ interface ApiService {
     suspend fun deleteReserva(@Path("id") id: String): ApiResponse
 
     @GET("reservas/mes/{mes}")
-    suspend fun getReservasMes(@Path("mes") mes: String): DiasReservadosResponse
+    suspend fun getReservasMes2(@Path("mes") mes: String): DiasReservadosResponse
 
+    @GET("/disponibilidad")
+    suspend fun getDisponibilidad(
+        @Query("cancha") cancha: String,
+        @Query("mes") mes: String,
+        @Query("dia") dia: String
+    ): DisponibilidadResponse
+
+    @GET("reservas/mes/{mes}")
+    suspend fun getReservasMes(@Path("mes") mes: String): ReservasMesResponse
 
 }
 
@@ -69,8 +79,14 @@ data class UserResponse(
     val rut: String
 )
 
-data class DiasReservadosResponse(
-    val dias_reservados: List<Int>
+data class ReservasMesResponse(
+    val dias_reservados_parciales: List<Int>,
+    val dias_reservados_completos: List<Int>,
+    val dias_no_reservados: List<Int>
+)
+
+data class DisponibilidadResponse(
+    val horarios_ocupados: List<String>
 )
 
 data class ReservaRequest(
@@ -93,6 +109,12 @@ data class ReservaResponse(
     val dia: String
 )
 
+data class DiasReservadosResponse(
+    val dias_reservados_parciales: List<Int>, // Días con reservas parciales
+    val dias_reservados_completos: List<Int>  // Días completamente reservados
+)
+
 data class UserRequest(val rut: String, val username: String, val password: String, val email: String)
 data class LoginRequest(val email: String, val password: String)
 data class ApiResponse(val message: String, val error: String? = null)
+

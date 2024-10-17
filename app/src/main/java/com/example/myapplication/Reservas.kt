@@ -31,7 +31,8 @@ fun ReservaScreen(
     isLoggedIn: Boolean,
     onLogout: () -> Unit,
     mesSeleccionado: String,
-    diaSeleccionado: String
+    diaSeleccionado: String,
+    username: String, email: String, rut: String
 ) {
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
@@ -60,6 +61,29 @@ fun ReservaScreen(
         }
     }
 
+    // Llamar a la API para obtener los horarios ocupados
+    LaunchedEffect(canchaSeleccionada, mesSeleccionado, diaSeleccionado) {
+        if (canchaSeleccionada.isNotEmpty() && mesSeleccionado.isNotEmpty() && diaSeleccionado.isNotEmpty()) {
+            coroutineScope.launch {
+                try {
+                    val response = RetrofitInstance.api.getDisponibilidad(
+                        cancha = canchaSeleccionada,
+                        mes = mesSeleccionado,
+                        dia = diaSeleccionado
+                    )
+                    val horariosOcupados = response.horarios_ocupados
+
+                    // Filtrar las duraciones disponibles
+                    duraciones = listOf("10:00 a 11:30", "11:30 a 13:00", "13:00 a 14:30", "14:30 a 16:00", "16:00 a 17:30")
+                        .filter { duracion -> !horariosOcupados.contains(duracion) }
+
+                } catch (e: Exception) {
+                    errorMessage = "Error al cargar la disponibilidad: ${e.localizedMessage}"
+                }
+            }
+        }
+    }
+
     // Lateral Drawer
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -81,6 +105,14 @@ fun ReservaScreen(
                         onClick = {
                             navController.navigate("mainScreen")
                             scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Perfil") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate("perfil/$username/$email/$rut")
+                            coroutineScope.launch { drawerState.close() }
                         }
                     )
                     NavigationDrawerItem(
@@ -267,53 +299,48 @@ fun ReservaScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Botón para enviar el formulario
                     Button(
                         onClick = {
-                            if (nombre.isNotEmpty() && rut.isNotEmpty() && carrera.isNotEmpty() && canchaSeleccionada.isNotEmpty() && duracionSeleccionada.isNotEmpty()&& diaSeleccionado.isNotEmpty()&& mesSeleccionado.isNotEmpty()) {
-                                coroutineScope.launch {
-                                    isLoading = true
-                                    try {
-                                        val response = RetrofitInstance.api.crearReserva(
-                                            ReservaRequest(
-                                                nombre = nombre,
-                                                rut = rut,
-                                                carrera = carrera,
-                                                cancha = canchaSeleccionada,
-                                                duracion = duracionSeleccionada,
-                                                mes = mesSeleccionado,
-                                                dia = diaSeleccionado
-                                            )
+                            isLoading = true
+                            coroutineScope.launch {
+                                try {
+                                    RetrofitInstance.api.crearReserva(
+                                        ReservaRequest(
+                                            nombre = nombre,
+                                            rut = rut,
+                                            carrera = carrera,
+                                            cancha = canchaSeleccionada,
+                                            duracion = duracionSeleccionada,
+                                            mes = mesSeleccionado,
+                                            dia = diaSeleccionado
                                         )
-                                        successMessage = "Reserva realizada con éxito"
-                                        errorMessage = null
-                                    } catch (e: Exception) {
-                                        errorMessage = "Error al realizar la reserva: ${e.localizedMessage}"
-                                        successMessage = null
-                                    } finally {
-                                        isLoading = false
-                                    }
+                                    )
+                                    successMessage = "Reserva creada exitosamente."
+                                } catch (e: Exception) {
+                                    errorMessage = "Error esa hora ya esta ocupada"
+                                } finally {
+                                    isLoading = false
                                 }
-                            } else {
-                                errorMessage = "Todos los campos son obligatorios"
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (isLoading) "Guardando..." else "Realizar Reserva")
+                        if (isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Enviar Reserva")
+                        }
                     }
                 }
-
-                // Barra inferior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xCC2B2B2B)),
+                        .background(Color(0xFF0F0147)),
                     contentAlignment = Alignment.Center
-                )
-                {
+                ) {
                     Text(
                         text = "© 2024 Universidad Católica de Temuco",
                         color = Color.White,
@@ -330,12 +357,16 @@ fun ReservaScreen(
 @Composable
 fun ReservaScreenPreview() {
     MyApplicationTheme {
+        val navController = rememberNavController()
         ReservaScreen(
-            navController = rememberNavController(),
+            navController = navController,
             isLoggedIn = true,
             onLogout = {},
-            mesSeleccionado = "0",
-            diaSeleccionado = "1"
+            mesSeleccionado = "Octubre",
+            diaSeleccionado = "16",
+            username = "",
+            rut="",
+            email = ""
         )
     }
 }

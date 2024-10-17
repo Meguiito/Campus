@@ -23,11 +23,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit) {
+fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String) {
     var reservas by remember { mutableStateOf<List<ReservaResponse>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
     // Obtener las reservas basadas en el rut del usuario
     LaunchedEffect(rut) {
@@ -61,6 +62,14 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                     selected = false,
                     onClick = {
                         navController.navigate("mainScreen")
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Perfil") },
+                    selected = false,
+                    onClick = {
+                        navController.navigate("perfil/$username/$email/$rut")
+                        coroutineScope.launch { drawerState.close() }
                     }
                 )
                 NavigationDrawerItem(
@@ -199,7 +208,9 @@ fun EliminarReservaScreenPreview() {
             navController = rememberNavController(),
             isLoggedIn = true,
             onLogout = {},
-            rut = ""
+            rut = "",
+            username = "",
+            email=""
         )
     }
 }

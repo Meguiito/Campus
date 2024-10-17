@@ -87,7 +87,10 @@ class MainActivity : ComponentActivity() {
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             mesSeleccionado = mes,
-                            diaSeleccionado = dia
+                            diaSeleccionado = dia,
+                            username = username,
+                            email = email,
+                            rut = rut
                         )
                     }
 
@@ -96,7 +99,10 @@ class MainActivity : ComponentActivity() {
                         CalendarScreen(
                             navController = navController,
                             isLoggedIn = isLoggedIn,
-                            onLogout = onLogout
+                            onLogout = onLogout,
+                            username = username,
+                            email = email,
+                            rut = rut
                         )
                     }
 
@@ -132,7 +138,9 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             rut = rut,
                             isLoggedIn = isLoggedIn,
-                            onLogout = onLogout
+                            onLogout = onLogout,
+                            email = email,
+                            username = username
                         )
                     }
 
@@ -142,7 +150,9 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             rut = rut,
                             isLoggedIn = isLoggedIn,
-                            onLogout = onLogout
+                            onLogout = onLogout,
+                            username=username,
+                            email=email
                         )
                     }
                 }

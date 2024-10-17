@@ -34,27 +34,32 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit) {
+fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String, rut: String) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    val currentMonth = remember {
-        YearMonth.now().month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-    }
+    // Obtener el mes actual
+    val currentMonth = remember { YearMonth.now().month.getDisplayName(TextStyle.FULL, Locale.getDefault()) }
 
-    var diasReservados by remember { mutableStateOf(listOf<Int>()) } // Lista de días reservados
+    // Estados para días reservados
+    var diasReservados by remember { mutableStateOf(listOf<Int>()) } // Días con reservas parciales
+    var diasCompletamenteReservados by remember { mutableStateOf(listOf<Int>()) } // Días completamente reservados
+    var diasNoReservados by remember { mutableStateOf(listOf<Int>()) } // Días no reservados
     var selectedDay by remember { mutableStateOf<LocalDate?>(null) }
 
     LaunchedEffect(currentMonth) {
         // Llamada a la API para obtener los días reservados del mes actual
         try {
             val response = RetrofitInstance.api.getReservasMes(currentMonth)
-            diasReservados = response.dias_reservados
+            diasReservados = response.dias_reservados_parciales // Días con reservas parciales
+            diasCompletamenteReservados = response.dias_reservados_completos // Días con todas las canchas reservadas
+            diasNoReservados = response.dias_no_reservados // Días no reservados que son seleccionables
         } catch (e: Exception) {
             println("Error al obtener reservas: ${e.message}")
         }
     }
 
+    // Redirigir si no está logueado
     if (!isLoggedIn) {
         navController.navigate("login")
         return
@@ -76,6 +81,14 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         selected = false,
                         onClick = {
                             navController.navigate("mainScreen")
+                            coroutineScope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Perfil") },
+                        selected = false,
+                        onClick = {
+                            navController.navigate("perfil/$username/$email/$rut")
                             coroutineScope.launch { drawerState.close() }
                         }
                     )
@@ -148,8 +161,8 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         modifier = Modifier.padding(16.dp)
                     )
 
-                    // Llamada al calendario con los días reservados
-                    CalendarView(diasReservados) { selectedDate ->
+                    // Llamada al calendario con los días reservados y completamente reservados
+                    CalendarView(diasReservados, diasCompletamenteReservados, diasNoReservados) { selectedDate ->
                         selectedDay = selectedDate
                         navController.navigate("reserva/${currentMonth}/${selectedDay?.dayOfMonth}")
                     }
@@ -160,10 +173,9 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xCC2B2B2B)),
+                        .background(Color(0xFF0F0147)),
                     contentAlignment = Alignment.Center
-                )
-                {
+                ) {
                     Text(
                         text = "© 2024 Universidad Católica de Temuco",
                         color = Color.White,
@@ -178,11 +190,15 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit) {
+fun CalendarView(
+    diasReservados: List<Int>,
+    diasCompletamenteReservados: List<Int>,
+    diasNoReservados: List<Int>, // Nueva lista de días no reservados
+    onDateSelected: (LocalDate) -> Unit
+) {
     val currentDate = remember { LocalDate.now() }
     val currentMonth = remember { YearMonth.now() }
     val daysInMonth = remember { currentMonth.lengthOfMonth() }
-
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
     Column {
@@ -210,6 +226,8 @@ fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit)
                     if (dayOfMonth <= daysInMonth) {
                         val currentDateInMonth = currentMonth.atDay(dayOfMonth)
                         val isReservado = dayOfMonth in diasReservados
+                        val isCompletamenteReservado = dayOfMonth in diasCompletamenteReservados
+                        val isNoReservado = dayOfMonth in diasNoReservados // Verificación si el día es no reservado
                         val isPastDate = currentDateInMonth.isBefore(currentDate)
 
                         Box(
@@ -217,10 +235,11 @@ fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit)
                                 .size(50.dp)
                                 .background(
                                     when {
-                                        isReservado -> Color.Gray // Día reservado
+                                        isCompletamenteReservado -> Color.Gray // Día completamente reservado
                                         selectedDate == currentDateInMonth -> Color.Yellow // Día seleccionado
-                                        isPastDate -> Color.LightGray // Día pasado
+                                        isPastDate -> Color.Gray // Día pasado
                                         dayOfMonth == currentDate.dayOfMonth -> Color.Cyan // Día actual
+                                        isNoReservado -> Color.White // Día no reservado y seleccionable
                                         else -> Color.White // Días normales
                                     }, RoundedCornerShape(8.dp)
                                 )
@@ -229,10 +248,10 @@ fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit)
                         ) {
                             Text(
                                 text = dayOfMonth.toString(),
-                                color = if (selectedDate == currentDateInMonth) Color.White else Color.Black,
+                                color = if (selectedDate == currentDateInMonth || isCompletamenteReservado) Color.White else Color.Black,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clickable(enabled = !isReservado && !isPastDate) { // Deshabilitar días reservados y pasados
+                                    .clickable(enabled = !isPastDate && (isNoReservado || !isCompletamenteReservado)) { // Permitir seleccionar días no reservados y no completamente reservados
                                         selectedDate = currentDateInMonth
                                         onDateSelected(selectedDate!!)
                                     },
@@ -246,6 +265,7 @@ fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit)
                 }
             }
         }
+
     }
 }
 
@@ -254,6 +274,7 @@ fun CalendarView(diasReservados: List<Int>, onDateSelected: (LocalDate) -> Unit)
 @Composable
 fun CalendarScreenPreview() {
     MyApplicationTheme {
-        CalendarScreen(navController = rememberNavController(), isLoggedIn = true, onLogout = {})
+        val navController = rememberNavController()
+        CalendarScreen(navController = navController, isLoggedIn = true, onLogout = {} ,username = "", rut = "", email = "")
     }
 }
