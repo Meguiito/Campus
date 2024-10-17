@@ -4,6 +4,8 @@ import bcrypt
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 from bson import ObjectId
 from functools import wraps
+from flask_cors import CORS
+from flask_cors import cross_origin
 
 app = Flask(__name__)
 
@@ -116,6 +118,18 @@ def crear_reserva():
         dia = request.json.get("dia")
 
         if nombre and rut and carrera and cancha and duracion and mes and dia:
+            # Verificar si ya existe una reserva para el mismo día, cancha y horario
+            reserva_existente = mongo.db.Reservas.find_one({
+                "cancha": cancha,
+                "dia": dia,
+                "mes": mes,
+                "duracion": duracion
+            })
+
+            if reserva_existente:
+                return jsonify({"error": "Ya existe una reserva para este día y horario"}), 409
+
+            # Insertar la nueva reserva
             reserva = {
                 'nombre': nombre,
                 'rut': rut,
@@ -124,7 +138,6 @@ def crear_reserva():
                 'duracion': duracion,
                 'mes': mes,
                 'dia': dia
-
             }
             result = mongo.db.Reservas.insert_one(reserva)
             return jsonify({"message": "Reserva creada exitosamente", "id": str(result.inserted_id)}), 201
@@ -360,6 +373,102 @@ def actualizar_reserva(id):
             )
             return jsonify({"message": "Reserva actualizada correctamente"}), 200
         else:
+            return jsonify({"error": "Reserva no encontrada"}), 404
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+# Consultar disponibilidad de una cancha en un día específico
+@app.route('/disponibilidad', methods=['GET'])
+def consultar_disponibilidad():
+    try:
+        cancha = request.args.get("cancha")
+        mes = request.args.get("mes")
+        dia = request.args.get("dia")
+
+        if cancha and mes and dia:
+            reservas = mongo.db.Reservas.find({
+                "cancha": cancha,
+                "mes": mes,
+                "dia": dia
+            })
+
+            horarios_ocupados = [reserva['duracion'] for reserva in reservas]
+            return jsonify({"horarios_ocupados": horarios_ocupados}), 200
+        else:
+            return jsonify({"error": "Cancha, mes y día son requeridos"}), 400
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@app.route('/reservas/mes/<mes>', methods=['GET'])
+@cross_origin()
+def get_reservas_mes(mes):
+    try:
+        # Obtener todas las reservas del mes
+        reservas_mes = mongo.db.Reservas.find({"mes": mes})
+
+        # Inicializar diccionarios para contar las reservas por día y cancha
+        reservas_por_dia = {}
+
+        for reserva in reservas_mes:
+            dia = reserva['dia']  # Asegúrate de que 'dia' está en el formato correcto (entero)
+            cancha = reserva['cancha']
+
+            if dia not in reservas_por_dia:
+                reservas_por_dia[dia] = {}
+
+            if cancha not in reservas_por_dia[dia]:
+                reservas_por_dia[dia][cancha] = 0
+
+            reservas_por_dia[dia][cancha] += 1
+
+        # Determinar días parciales y completos
+        dias_reservados_parciales = []
+        dias_reservados_completos = []
+
+        for dia, canchas in reservas_por_dia.items():
+            # Supongamos que tienes un número fijo de franjas horarias por cancha
+            total_franjas_por_cancha = 5  # Cambia este número según el número de franjas horarias disponibles
+
+            reservas_totales = sum(canchas.values())
+            total_canchas = len(canchas)
+
+            # Modificación: Si hay reservas pero no son todas, se considera como día parcial
+            if reservas_totales < total_franjas_por_cancha * total_canchas:
+                dias_reservados_parciales.append(int(dia))
+            else:
+                dias_reservados_completos.append(int(dia))
+
+        # Cualquier día que no esté en días reservados parciales o completos debe ser seleccionable
+        dias_todos = list(range(1, 32))  # Asumiendo que todos los días del mes podrían estar disponibles
+        dias_no_reservados = [dia for dia in dias_todos if dia not in dias_reservados_parciales and dia not in dias_reservados_completos]
+
+        return jsonify({
+            "dias_reservados_parciales": dias_reservados_parciales,
+            "dias_reservados_completos": dias_reservados_completos,
+            "dias_no_reservados": dias_no_reservados
+        }), 200
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@app.route('/reservas/<id>', methods=['DELETE'])
+def eliminar_reserva(id):
+    try:
+        # Buscar la reserva por ID
+        reserva = mongo.db.Reservas.find_one({"_id": ObjectId(id)})
+
+        if reserva:
+            # Si se encuentra, eliminar la reserva
+            mongo.db.Reservas.delete_one({"_id": ObjectId(id)})
+            return jsonify({"message": "Reserva eliminada correctamente"}), 200
+        else:
+            # Si no se encuentra, devolver error
             return jsonify({"error": "Reserva no encontrada"}), 404
     except PyMongoError as e:
         return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
