@@ -10,7 +10,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 // URL a la API en localhost
-private const val BASE_URL = "http://192.168.1.10:5000/"
+private const val BASE_URL = "http://192.168.4.1:5000/"
 
 interface ApiService {
     @POST("users")

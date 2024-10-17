@@ -21,10 +21,12 @@ class MainActivity : ComponentActivity() {
 
                 // Estado de inicio de sesión
                 var isLoggedIn by remember { mutableStateOf(false) }
+                var isAdmin by remember { mutableStateOf(false) }
 
                 // Función de logout
                 val onLogout = {
                     isLoggedIn = false
+                    isAdmin = false
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -35,17 +37,36 @@ class MainActivity : ComponentActivity() {
                 var email by remember { mutableStateOf("") }
                 var rut by remember { mutableStateOf("") }
 
-                NavHost(navController = navController, startDestination = if (isLoggedIn) "mainScreen" else "login") {
+                // Definir el destino de inicio según el estado de sesión y tipo de usuario
+                NavHost(
+                    navController = navController,
+                    startDestination = if (isLoggedIn) {
+                        if (isAdmin) "adminScreen" else "mainScreen"
+                    } else "login"
+                ) {
+                    // Pantalla de login
                     composable("login") {
                         LoginForm(navController) { user, userEmail, userRut ->
                             isLoggedIn = true
                             username = user
                             email = userEmail
-                            rut = userRut // Asegúrate de que esta variable reciba el RUT
-                            navController.navigate("mainScreen")
+                            rut = userRut
+
+                            // Verificar si el usuario es administrador
+                            if (userEmail == "admin@uct.cl") {
+                                isAdmin = true
+                                navController.navigate("adminScreen")
+                            } else {
+                                isAdmin = false
+                                navController.navigate("mainScreen")
+                            }
                         }
                     }
+
+                    // Pantalla de registro
                     composable("register") { RegisterScreen(navController) }
+
+                    // Pantalla principal de usuario regular
                     composable("mainScreen") {
                         MainScreen(
                             navController = navController,
@@ -56,6 +77,8 @@ class MainActivity : ComponentActivity() {
                             rut = rut
                         )
                     }
+
+                    // Pantalla de reservas
                     composable("reserva/{mes}/{dia}") { backStackEntry ->
                         val mes = backStackEntry.arguments?.getString("mes") ?: "1"
                         val dia = backStackEntry.arguments?.getString("dia") ?: "1"
@@ -67,6 +90,8 @@ class MainActivity : ComponentActivity() {
                             diaSeleccionado = dia
                         )
                     }
+
+                    // Pantalla de calendario
                     composable("calendario") {
                         CalendarScreen(
                             navController = navController,
@@ -74,7 +99,19 @@ class MainActivity : ComponentActivity() {
                             onLogout = onLogout
                         )
                     }
-                    // Nueva pantalla para el perfil del usuario
+
+                    // Pantalla de administrador
+                    composable("adminScreen") {
+                        AdminScreen(
+                            navController = navController,
+                            username = username,
+                            email = email,
+                            rut = rut,
+                            onLogout = onLogout
+                        )
+                    }
+
+                    // Pantalla de perfil de usuario
                     composable("perfil/{username}/{email}/{rut}") { backStackEntry ->
                         val username = backStackEntry.arguments?.getString("username") ?: ""
                         val email = backStackEntry.arguments?.getString("email") ?: ""
@@ -88,10 +125,18 @@ class MainActivity : ComponentActivity() {
                             navController = navController
                         )
                     }
+
+                    // Pantalla de edición de reserva
                     composable("editarReserva") {
-                        EditarReservaScreen(navController = navController, rut = rut,isLoggedIn = isLoggedIn,
-                            onLogout = onLogout)
+                        EditarReservaScreen(
+                            navController = navController,
+                            rut = rut,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout
+                        )
                     }
+
+                    // Pantalla de eliminación de reserva
                     composable("eliminarReserva") {
                         EliminarReservaScreen(
                             navController = navController,
