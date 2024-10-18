@@ -19,7 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String) -> Unit) {
+fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String, String?) -> Unit) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var isLoading by remember { mutableStateOf(false) }
@@ -68,7 +68,7 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
                 label = { Text("Email") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Transparent) // Hace el fondo del TextField transparente
+                    .background(Color.Transparent)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -111,8 +111,8 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
                                     val userInfo = RetrofitInstance.api.getUserByEmail(
                                         EmailRequest(email.text)
                                     )
-                                    // Llama al callback con el username, email y rut
-                                    onLoginSuccess(userInfo.username, userInfo.email, userInfo.rut)
+                                    // Llama al callback con el username, email, rut y image (si existe)
+                                    onLoginSuccess(userInfo.username, userInfo.email, userInfo.rut, userInfo.image)
                                 } else {
                                     errorMessage = response.error
                                 }
@@ -131,7 +131,7 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFfcc40d) // Color actualizado
+                    containerColor = Color(0xFFfcc40d)
                 ),
                 enabled = !isLoading
             ) {
@@ -146,7 +146,7 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
             }) {
                 Text(
                     text = "¿No tienes cuenta? Regístrate aquí",
-                    color = Color(0xFFc4d5df) // Color del texto actualizado
+                    color = Color(0xFFc4d5df)
                 )
             }
         }
@@ -156,5 +156,5 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
 @Preview(showBackground = true)
 @Composable
 fun LoginFormPreview() {
-    LoginForm(navController = rememberNavController()) { _, _, _ -> }
+    LoginForm(navController = rememberNavController()) { _, _, _, _ -> }
 }

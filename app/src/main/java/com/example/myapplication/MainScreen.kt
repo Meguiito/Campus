@@ -161,7 +161,7 @@ fun CustomButton(text: String, onClick: () -> Unit) {
             .height(50.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF33D1FF)
+            containerColor = Color(0xFFFCC40A)
         )
     ) {
         Text(text = text, color = Color.Black)

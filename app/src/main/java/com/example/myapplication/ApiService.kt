@@ -1,12 +1,18 @@
 package com.example.myapplication
 
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.POST
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -44,6 +50,13 @@ interface ApiService {
     @DELETE("reservas/{id}")
     suspend fun deleteReserva(@Path("id") id: String): ApiResponse
 
+    @Multipart
+    @PUT("/users/{user_id}/profile")
+    suspend fun uploadProfileImage(
+        @Path("user_id") userId: String,
+        @Part image: MultipartBody.Part
+    ): Response<ResponseBody>  // Cambiado a Response<ResponseBody>
+
     @GET("reservas/mes/{mes}")
     suspend fun getReservasMes2(@Path("mes") mes: String): DiasReservadosResponse
 
@@ -57,6 +70,8 @@ interface ApiService {
     @GET("reservas/mes/{mes}")
     suspend fun getReservasMes(@Path("mes") mes: String): ReservasMesResponse
 
+    @POST("/users/uploadImage")
+    suspend fun uploadProfileImage(@Body imageRequest: ImageRequest): ApiResponse
 }
 
 object RetrofitInstance {
@@ -69,14 +84,16 @@ object RetrofitInstance {
     }
 }
 
-data class EmailRequest(
-    val email: String
-)
+// Data classes
+data class EmailRequest(val email: String)
+data class ImageRequest(val email: String, val image: String)  // Imagen en base64
+
 
 data class UserResponse(
     val username: String,
     val email: String,
-    val rut: String
+    val rut: String,
+    val image: String // Propiedad para la imagen de perfil
 )
 
 data class ReservasMesResponse(
@@ -98,6 +115,7 @@ data class ReservaRequest(
     val mes: String,
     val dia: String
 )
+
 data class ReservaResponse(
     val id: String,
     val nombre: String,
@@ -117,4 +135,3 @@ data class DiasReservadosResponse(
 data class UserRequest(val rut: String, val username: String, val password: String, val email: String)
 data class LoginRequest(val email: String, val password: String)
 data class ApiResponse(val message: String, val error: String? = null)
-

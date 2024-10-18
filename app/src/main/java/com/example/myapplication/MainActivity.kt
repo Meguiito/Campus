@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
                 var username by remember { mutableStateOf("") }
                 var email by remember { mutableStateOf("") }
                 var rut by remember { mutableStateOf("") }
+                var imageBase64 by remember { mutableStateOf<String?>(null) } // Cambiar a String? para que pueda ser nulo
 
                 // Definir el destino de inicio según el estado de sesión y tipo de usuario
                 NavHost(
@@ -46,12 +47,12 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // Pantalla de login
                     composable("login") {
-                        LoginForm(navController) { user, userEmail, userRut ->
+                        LoginForm(navController) { user, userEmail, userRut, userImage ->
                             isLoggedIn = true
                             username = user
                             email = userEmail
                             rut = userRut
-
+                            imageBase64 = userImage // Acepta valor nulo
                             // Verificar si el usuario es administrador
                             if (userEmail == "admin@uct.cl") {
                                 isAdmin = true
@@ -128,7 +129,9 @@ class MainActivity : ComponentActivity() {
                             rut = rut,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
-                            navController = navController
+                            navController = navController,
+                            imageBase64 = imageBase64 // Se pasa como String?
+
                         )
                     }
 
@@ -151,8 +154,8 @@ class MainActivity : ComponentActivity() {
                             rut = rut,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
-                            username=username,
-                            email=email
+                            username = username,
+                            email = email
                         )
                     }
                 }

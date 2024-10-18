@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -144,19 +147,21 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(8.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Gray)
+                                    .padding(16.dp),
+                                shape = MaterialTheme.shapes.large,
+                                elevation = CardDefaults.cardElevation(4.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFCC40A)),
+                                border = BorderStroke(2.dp, Color.White)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp)
                                 ) {
-                                    Text(text = "Nombre: ${reserva.nombre}", color = Color.White)
-                                    Text(text = "Carrera: ${reserva.carrera}", color = Color.White)
-                                    Text(text = "Cancha: ${reserva.cancha}", color = Color.White)
-                                    Text(text = "Duración: ${reserva.duracion}", color = Color.White)
-                                    Text(text = "Día: ${reserva.dia}", color = Color.White)
-                                    Text(text = "Mes: ${reserva.mes}", color = Color.White)
+                                    Text(text = "Nombre: ${reserva.nombre}", color = Color.Black)
+                                    Text(text = "Carrera: ${reserva.carrera}", color = Color.Black)
+                                    Text(text = "Cancha: ${reserva.cancha}", color = Color.Black)
+                                    Text(text = "Duración: ${reserva.duracion}", color = Color.Black)
+                                    Text(text = "Día: ${reserva.dia}", color = Color.Black)
+                                    Text(text = "Mes: ${reserva.mes}", color = Color.Black)
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -173,7 +178,7 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                                                 }
                                             }
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
                                         modifier = Modifier.align(Alignment.End)
                                     ) {
                                         Text(text = "Eliminar")
@@ -190,10 +195,16 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xFF33D1FF)),
+                        .background(Color(0xFF0F0147)),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Universidad Católica de Temuco, 2024", color = Color.White)
+                )
+                {
+                    Text(
+                        text = "© 2024 Universidad Católica de Temuco",
+                        color = Color.White,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

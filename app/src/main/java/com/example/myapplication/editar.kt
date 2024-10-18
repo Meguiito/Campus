@@ -323,7 +323,9 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                             }
                         }
                     } else {
-                        Text("No se encontraron reservas.")
+                        Text("No se encontraron reservas.",color = Color.White,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold)
                     }
                 }
                 Box(

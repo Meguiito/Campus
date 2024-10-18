@@ -1,11 +1,18 @@
 package com.example.myapplication
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,8 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,11 +37,29 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerfilScreen(navController: NavController,isLoggedIn: Boolean, onLogout: () -> Unit, username: String, email: String, rut: String) {
+fun PerfilScreen(
+    navController: NavController,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
+    username: String,
+    email: String,
+    rut: String,
+    imageBase64: String? // La imagen ahora es opcional
+) {
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        imageUri = uri
+    }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    // Lateral Drawer
+    // Decodificar la imagen en base64 si está presente
+    val bitmap = imageBase64?.let {
+        val imageBytes = Base64.decode(it, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -60,7 +89,7 @@ fun PerfilScreen(navController: NavController,isLoggedIn: Boolean, onLogout: () 
                     label = { Text("Cerrar sesión") },
                     selected = false,
                     onClick = {
-                        // Lógica para cerrar sesión
+                        onLogout()
                         coroutineScope.launch { drawerState.close() }
                     }
                 )
@@ -68,24 +97,21 @@ fun PerfilScreen(navController: NavController,isLoggedIn: Boolean, onLogout: () 
         },
         content = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
-                // Imagen de fondo
                 Image(
-                    painter = painterResource(id = R.drawable.uctinformatica), // Reemplaza con tu imagen de fondo
+                    painter = painterResource(id = R.drawable.uctinformatica),
                     contentDescription = "Fondo",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop // Ajusta la imagen para que cubra toda la pantalla
+                    contentScale = ContentScale.Crop
                 )
 
-                // Barra superior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
                         .align(Alignment.TopCenter)
-                        .background(Color(0xFF33D1FF).copy(alpha = 0.7f)), // Color con transparencia
+                        .background(Color(0xFFFCC40A)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     IconButton(
@@ -99,112 +125,213 @@ fun PerfilScreen(navController: NavController,isLoggedIn: Boolean, onLogout: () 
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(105.dp)
-                            .padding(start = 16.dp),
-                        contentScale = ContentScale.Fit
+                        modifier = Modifier.size(105.dp)
                     )
 
                     Text(
                         text = "Perfil de Usuario",
                         color = Color.White,
-                        modifier = Modifier.align(Alignment.Center).padding(start = 8.dp) // Espacio entre el logo y el título
+                        modifier = Modifier.align(Alignment.Center).padding(start = 8.dp)
                     )
                 }
 
-                // Fondo entre las barras (opcional)
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 60.dp, bottom = 50.dp) // Espacio para la barra superior e inferior
+                    modifier = Modifier.fillMaxSize().padding(top = 60.dp, bottom = 50.dp)
                 ) {
-                    // Contenido del perfil
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
-                            .padding(top = 0.dp), // Sin espacio extra
+                            .padding(top = 0.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        // Imagen de perfil
-                        Image(
-                            painter = painterResource(id = R.drawable.usuarioa), // Cambia esto por tu recurso de imagen
-                            contentDescription = "Imagen de Perfil",
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, Color(0xFF80D8FF), CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                        // Solo mostrar imagen si existe
+                        if (bitmap != null) {
+                            Box(
+                                contentAlignment = Alignment.BottomCenter,
+                                modifier = Modifier.size(190.dp)
+                            ) {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Imagen de Perfil",
+                                    modifier = Modifier
+                                        .size(190.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color.White, CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                                // Botones circulares superpuestos
+                                Row(
+                                    modifier = Modifier
+                                        .offset(y = 60.dp)
+                                        .padding(4.dp)
+                                ) {
+                                    // Botón de añadir (A)
+                                    IconButton(
+                                        onClick = { launcher.launch("image/*") },
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFFfcc40d))
+                                            .border(2.dp, Color.White, CircleShape)
+                                    ) {
+                                        Text("+", color = Color.White, textAlign = TextAlign.Center)
+                                    }
 
-                        // Tarjeta de información del usuario
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    IconButton(
+                                        onClick = {
+                                            imageUri?.let { uri ->
+                                                val inputStream = context.contentResolver.openInputStream(uri)
+                                                val imageBytes = inputStream?.readBytes()
+                                                val encodedImage = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
+                                                coroutineScope.launch {
+                                                    try {
+                                                        val response = RetrofitInstance.api.uploadProfileImage(ImageRequest(email, encodedImage))
+                                                    } catch (e: Exception) {
+                                                        // Manejo de errores
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(0xFF80D8FF))
+                                            .border(2.dp, Color.White, CircleShape)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit profile",
+                                            tint = Color.White // Mantiene el color blanco
+                                        )
+                                    }
+
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(56.dp))
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             shape = MaterialTheme.shapes.large,
-                            elevation = CardDefaults.cardElevation(8.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF80D8FF)) // Celeste claro
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCC40A)),
+                            border = BorderStroke(2.dp, Color.White)
                         ) {
                             Column(
                                 modifier = Modifier.padding(24.dp),
                                 horizontalAlignment = Alignment.Start,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text(
-                                    text = "Usuario: $username",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White
-                                )
+                                // Fila para "Usuario"
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Usuario:",
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = username,
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                // Fila para "Correo"
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Correo:",
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = email,
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                                Text(
-                                    text = "Correo: $email",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Text(
-                                    text = "Rut: $rut",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White
-                                )
+                                // Fila para "Rut"
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Rut:",
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = rut,
+                                        color = Color.Black,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(32.dp))
 
-                        // Botón de cerrar sesión
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Button(
-                            onClick = { onLogout() },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF80D8FF)) // Celeste
+                            onClick = {
+                                onLogout()
+                                navController.navigate("loginScreen")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFfcc40d)
+                            ),
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape)
                         ) {
-                            Text(text = "Cerrar Sesión", color = Color.White)
+                            Text("Cerrar sesión")
                         }
+
                     }
                 }
-
-                // Barra inferior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color.Gray)
-                ) {
+                        .background(Color(0xFF0F0147)),
+                    contentAlignment = Alignment.Center
+                )
+                {
                     Text(
-                        text = "Universidad catolica de temuco.",
+                        text = "© 2024 Universidad Católica de Temuco",
                         color = Color.White,
-                        modifier = Modifier.align(Alignment.Center)
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold
                     )
                 }
+
             }
         }
     )
@@ -220,7 +347,8 @@ fun PerfilScreenPreview() {
             username = "",
             rut = "",
             isLoggedIn = true,
-            onLogout = {}
+            onLogout = {},
+            imageBase64 = null // Imagen es opcional
         )
     }
 }
