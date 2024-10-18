@@ -6,6 +6,7 @@ from bson import ObjectId
 from functools import wraps
 from flask_cors import CORS
 from flask_cors import cross_origin
+import base64
 
 app = Flask(__name__)
 
@@ -148,7 +149,6 @@ def crear_reserva():
         return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
-    
 # Cancelar una reserva
 @app.route('/reservas/cancelar', methods=['DELETE'])
 def cancelar_reserva():
@@ -292,18 +292,20 @@ def eliminar_usuario(username):
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-# Obtener el perfil del usuario
+# Obtener perfil incluyendo la imagen
 @app.route('/users/getByEmail', methods=['POST'])
+@cross_origin()
 def get_user_by_email():
     try:
         email = request.json.get("email")
-        user = mongo.db.Usuarios.find_one({"email": email}, {"username": 1, "email": 1, "rut": 1})
-        
+        user = mongo.db.Usuarios.find_one({"email": email}, {"username": 1, "email": 1, "rut": 1, "image": 1})
+
         if user:
             return jsonify({
                 "username": user["username"],
                 "email": user["email"],  
-                "rut": user["rut"]       
+                "rut": user["rut"],
+                "image": user.get("image")  # Se incluye la imagen si está disponible
             }), 200
         else:
             return jsonify({"error": "Usuario no encontrado"}), 404
@@ -474,6 +476,53 @@ def eliminar_reserva(id):
         return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Cargar imagen de perfil
+@app.route('/users/uploadImage', methods=['POST'])
+def upload_profile_image():
+    try:
+        email = request.json.get("email")
+        image_data = request.json.get("image")  # Base64 encoded image
+
+        if not email or not image_data:
+            return jsonify({"error": "Faltan datos"}), 400
+
+        # Almacena la imagen en base64 (se puede cambiar por un almacenamiento en la nube)
+        mongo.db.Usuarios.update_one(
+            {"email": email},
+            {"$set": {"image": image_data}}
+        )
+
+        return jsonify({"message": "Imagen subida exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@app.route('/users/<user_id>/profile', methods=['PUT'])
+def actualizar_perfil(user_id):
+    try:
+        user = mongo.db.Usuarios.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        if 'image' in request.files:
+            image = request.files['image']
+            # Guardar la imagen como base64
+            image_string = base64.b64encode(image.read()).decode('utf-8')
+
+            # Actualizar el perfil del usuario
+            mongo.db.Usuarios.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {
+                    "imagen_perfil": image_string
+                }}
+            )
+            return jsonify({"message": "Perfil actualizado correctamente"}), 200
+        else:
+            return jsonify({"error": "No se encontró una imagen"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
