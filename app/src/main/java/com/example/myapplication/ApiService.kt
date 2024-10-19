@@ -72,6 +72,17 @@ interface ApiService {
 
     @POST("/users/uploadImage")
     suspend fun uploadProfileImage(@Body imageRequest: ImageRequest): ApiResponse
+
+    @DELETE("users/{username}")
+    suspend fun deleteUserByUsername(@Path("username") username: String)
+
+    @GET("/users")
+    suspend fun getAllUsers(): List<UsuarioResponse2>
+
+    @DELETE("users/{id}")
+    suspend fun deleteUserById(@Path("id") id: String): UsuarioResponse2
+
+
 }
 
 object RetrofitInstance {
@@ -87,6 +98,12 @@ object RetrofitInstance {
 // Data classes
 data class EmailRequest(val email: String)
 data class ImageRequest(val email: String, val image: String)  // Imagen en base64
+
+data class UsuarioResponse2(
+    val id: String,
+    val username: String,
+    val email: String
+)
 
 
 data class UserResponse(

@@ -158,6 +158,17 @@ class MainActivity : ComponentActivity() {
                             email = email
                         )
                     }
+                    // Pantalla de eliminación de usuario
+                    composable("eliminarUsuario") {
+                        EliminarUsuarioScreen(
+                            navController = navController,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout,
+                            username = username,
+                            email = email
+                        )
+                    }
+
                 }
             }
         }

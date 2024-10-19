@@ -112,7 +112,7 @@ fun AdminScreen(navController: NavController, username: String, email: String, r
                     verticalArrangement = Arrangement.Center
                 ) {
                     CustomButton(text = "Eliminar Usuario") {
-                        //navController.navigate("eliminarUsuario")
+                        navController.navigate("eliminarUsuario")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     CustomButton(text = "Editar Canchas") {
