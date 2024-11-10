@@ -523,6 +523,97 @@ def actualizar_perfil(user_id):
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
 
+def crear_reserva_articulo():
+    try:
+        nombre = request.json.get("nombre")
+        rut = request.json.get("rut")
+        carrera = request.json.get("carrera")
+        articulo = request.json.get("articulo")
+        duracion = request.json.get("duracion")
+        mes = request.json.get("mes")
+        dia = request.json.get("dia")
+
+        if nombre and rut and carrera and articulo and duracion and mes and dia:
+            # Verificar si ya existe una reserva para el mismo día, artículo y horario
+            reserva_existente = mongo.db.ReservasArticulos.find_one({
+                "articulo": articulo,
+                "dia": dia,
+                "mes": mes,
+                "duracion": duracion
+            })
+
+            if reserva_existente:
+                return jsonify({"error": "Ya existe una reserva para este artículo en el día y horario especificado"}), 409
+
+            # Insertar la nueva reserva
+            reserva = {
+                'nombre': nombre,
+                'rut': rut,
+                'carrera': carrera,
+                'articulo': articulo,
+                'duracion': duracion,
+                'mes': mes,
+                'dia': dia
+            }
+            result = mongo.db.ReservasArticulos.insert_one(reserva)
+            return jsonify({"message": "Reserva de artículo creada exitosamente", "id": str(result.inserted_id)}), 201
+        else:
+            return jsonify({"error": "Todos los campos son obligatorios"}), 400
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Cancelar una reserva de artículo
+@app.route('/reservas_articulos/cancelar', methods=['DELETE'])
+def cancelar_reserva_articulo():
+    try:
+        reserva_id = request.json.get("_id", {}).get("$oid")
+
+        if not reserva_id:
+            return jsonify({"error": "El ID de la reserva es obligatorio o está mal formateado"}), 400
+
+        result = mongo.db.ReservasArticulos.delete_one({'_id': ObjectId(reserva_id)})
+
+        if result.deleted_count > 0:
+            return jsonify({"message": "Reserva de artículo cancelada exitosamente"}), 200
+        else:
+            return jsonify({"error": "Reserva de artículo no encontrada"}), 404
+
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+# Actualizar una reserva de artículo por su ID
+@app.route('/reservas_articulos/<id>', methods=['PUT'])
+def actualizar_reserva_articulo(id):
+    try:
+        data = request.json
+        reserva = mongo.db.ReservasArticulos.find_one({"_id": ObjectId(id)})
+        
+        if reserva:
+            mongo.db.ReservasArticulos.update_one(
+                {"_id": ObjectId(id)},
+                {"$set": {
+                    "nombre": data.get("nombre", reserva["nombre"]),
+                    "rut": data.get("rut", reserva["rut"]),
+                    "carrera": data.get("carrera", reserva["carrera"]),
+                    "articulo": data.get("articulo", reserva["articulo"]),
+                    "duracion": data.get("duracion", reserva["duracion"]),
+                    "mes": data.get("mes", reserva["mes"]),
+                    "dia": data.get("dia", reserva["dia"])
+                }}
+            )
+            return jsonify({"message": "Reserva de artículo actualizada correctamente"}), 200
+        else:
+            return jsonify({"error": "Reserva de artículo no encontrada"}), 404
+    except PyMongoError as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
