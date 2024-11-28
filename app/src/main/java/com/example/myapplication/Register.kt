@@ -3,17 +3,20 @@ package com.example.myapplication
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
@@ -29,148 +32,165 @@ fun RegisterScreen(navController: NavController) {
 
     val scope = rememberCoroutineScope()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF047cbc)) // Color de fondo igual que en el login
-            .padding(16.dp)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF216a9d),
+                        Color(0xFF1ea25a),
+                        Color(0xFFa4cc39)
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        // Barra superior con logo
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .background(Color(0xFFFCC40A)),
-            contentAlignment = Alignment.CenterStart
+                .fillMaxWidth(0.9f)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Logo en la parte superior
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(115.dp)
-                    .offset(x = (-5).dp)
-                    .padding(start = 0.dp, top = 10.dp),
+                    .size(150.dp)
+                    .padding(bottom = 16.dp),
                 contentScale = ContentScale.Crop
             )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Contenido del formulario
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
-        ) {
-            // Email input
-            TextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Transparent) // Fondo transparente
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Nombre de usuario
-            TextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Nombre de usuario") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Rut de usuario
-            TextField(
-                value = rut,
-                onValueChange = { rut = it },
-                label = { Text("Rut") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Contraseña input
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Mensaje de error
-            if (errorMessage != null) {
-                Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-            }
-
-            // Botón de registro
-            Button(
-                onClick = {
-                    if (username.text.isNotEmpty() && password.text.isNotEmpty() && email.text.isNotEmpty() && rut.text.isNotEmpty()) {
-                        scope.launch {
-                            isLoading = true
-                            try {
-                                val response = RetrofitInstance.api.createUser(
-                                    UserRequest(
-                                        rut.text,
-                                        username.text,
-                                        password.text,
-                                        email.text
-                                    )
-                                )
-                                if (response.error == null) {
-                                    navController.navigate("login")
-                                } else {
-                                    errorMessage = response.error
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = "Error al registrar el usuario: ${e.localizedMessage}"
-                            } finally {
-                                isLoading = false
-                            }
-                        }
-                    } else {
-                        errorMessage = "Todos los campos son obligatorios."
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFfcc40d) // Color del botón
-                ),
-                enabled = !isLoading
+                    .padding(16.dp),
+                shape = RoundedCornerShape(30.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Text("Registrarse")
-            }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Regístrate",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color(0xFF2559A8),
+                        textAlign = TextAlign.Center
+                    )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            // Enlace para ir a la pantalla de login
-            TextButton(onClick = {
-                navController.navigate("login")
-            }) {
-                Text(
-                    text = "¿Ya tienes cuenta? Inicia sesión aquí",
-                    color = Color(0xFFc4d5df) // Color del texto actualizado
-                )
+                    // Email input
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Username input
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Nombre de usuario") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Rut input
+                    OutlinedTextField(
+                        value = rut,
+                        onValueChange = { rut = it },
+                        label = { Text("Rut") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Password input
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Contraseña") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Error message
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+
+                    // Register button
+                    Button(
+                        onClick = {
+                            if (username.text.isNotEmpty() && password.text.isNotEmpty() && email.text.isNotEmpty() && rut.text.isNotEmpty()) {
+                                scope.launch {
+                                    isLoading = true
+                                    try {
+                                        val response = RetrofitInstance.api.createUser(
+                                            UserRequest(
+                                                rut.text,
+                                                username.text,
+                                                password.text,
+                                                email.text
+                                            )
+                                        )
+                                        if (response.error == null) {
+                                            navController.navigate("login")
+                                        } else {
+                                            errorMessage = response.error
+                                        }
+                                    } catch (e: Exception) {
+                                        errorMessage = "Error al registrar el usuario: ${e.localizedMessage}"
+                                    } finally {
+                                        isLoading = false
+                                    }
+                                }
+                            } else {
+                                errorMessage = "Todos los campos son obligatorios."
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2559A8),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        enabled = !isLoading
+                    ) {
+                        Text(text = "Registrarse", fontSize = 18.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Login link
+                    TextButton(onClick = {
+                        navController.navigate("login")
+                    }) {
+                        Text(
+                            text = "¿Ya tienes cuenta? Inicia sesión aquí",
+                            color = Color(0xFF2559A8),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    RegisterScreen(navController = rememberNavController())
 }
