@@ -32,10 +32,10 @@ fun ReservaScreen(
     onLogout: () -> Unit,
     mesSeleccionado: String,
     diaSeleccionado: String,
-    username: String, email: String, rut: String
+    rut: String,
+    username: String, email: String
 ) {
     var nombre by remember { mutableStateOf("") }
-    var rut by remember { mutableStateOf("") }
     var carrera by remember { mutableStateOf("") }
     var canchaSeleccionada by remember { mutableStateOf("") }
     var duracionSeleccionada by remember { mutableStateOf("") }
@@ -200,7 +200,7 @@ fun ReservaScreen(
 
                     OutlinedTextField(
                         value = rut,
-                        onValueChange = { rut = rut },
+                        onValueChange = { },
                         label = { Text("$rut") },
                         modifier = Modifier.fillMaxWidth()
                     )
