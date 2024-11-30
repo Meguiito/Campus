@@ -5,22 +5,32 @@ import android.net.Uri
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.animation.*
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,9 +54,10 @@ fun PerfilScreen(
     username: String,
     email: String,
     rut: String,
-    imageBase64: String? // La imagen ahora es opcional
+    imageBase64: String?
 ) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var updatedImageBase64 by remember { mutableStateOf(imageBase64) }
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         imageUri = uri
@@ -54,8 +65,8 @@ fun PerfilScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    // Decodificar la imagen en base64 si está presente
-    val bitmap = imageBase64?.let {
+    // Decodificar la imagen de perfil en Base64
+    val bitmap = updatedImageBase64?.let {
         val imageBytes = Base64.decode(it, Base64.DEFAULT)
         BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
     }
@@ -64,24 +75,13 @@ fun PerfilScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Text(
-                    text = "Menú",
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Text(text = "Menú", fontSize = 20.sp, modifier = Modifier.padding(16.dp))
                 Spacer(modifier = Modifier.height(16.dp))
                 NavigationDrawerItem(
                     label = { Text("Inicio") },
                     selected = false,
                     onClick = {
                         navController.navigate("mainScreen")
-                        coroutineScope.launch { drawerState.close() }
-                    }
-                )
-                NavigationDrawerItem(
-                    label = { Text("Perfil") },
-                    selected = false,
-                    onClick = {
                         coroutineScope.launch { drawerState.close() }
                     }
                 )
@@ -96,246 +96,136 @@ fun PerfilScreen(
             }
         },
         content = {
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.uctinformatica),
-                    contentDescription = "Fondo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Fondo degradado
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFFFCC40A)),
-                    contentAlignment = Alignment.CenterStart
+                        .fillMaxSize()
+                        .background(brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF1565C0), // Azul más oscuro (puedes ajustarlo)
+                                Color(0xFF42A5F5), // Azul más claro (puedes ajustarlo)
+                            )
+                        ))
                 ) {
-                    IconButton(
-                        onClick = { coroutineScope.launch { drawerState.open() } },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
-                    }
+
                     Image(
-                        painter = painterResource(id = R.drawable.logo),
+                        painter = painterResource(id = R.drawable.logo), // Reemplaza 'logo' con el nombre de tu archivo
                         contentDescription = "Logo",
-                        modifier = Modifier.size(105.dp)
-                    )
-
-                    Text(
-                        text = "Perfil de Usuario",
-                        color = Color.White,
-                        modifier = Modifier.align(Alignment.Center).padding(start = 8.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(top = 60.dp, bottom = 50.dp)
-                ) {
-                    Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                            .padding(top = 0.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        // Solo mostrar imagen si existe
-                        if (bitmap != null) {
-                            Box(
-                                contentAlignment = Alignment.BottomCenter,
-                                modifier = Modifier.size(190.dp)
-                            ) {
-                                Image(
-                                    bitmap = bitmap.asImageBitmap(),
-                                    contentDescription = "Imagen de Perfil",
-                                    modifier = Modifier
-                                        .size(190.dp)
-                                        .clip(CircleShape)
-                                        .border(2.dp, Color.White, CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-
-                                // Botones circulares superpuestos
-                                Row(
-                                    modifier = Modifier
-                                        .offset(y = 60.dp)
-                                        .padding(4.dp)
-                                ) {
-                                    // Botón de añadir (A)
-                                    IconButton(
-                                        onClick = { launcher.launch("image/*") },
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFfcc40d))
-                                            .border(2.dp, Color.White, CircleShape)
-                                    ) {
-                                        Text("+", color = Color.White, textAlign = TextAlign.Center)
-                                    }
-
-                                    Spacer(modifier = Modifier.width(16.dp))
-
-                                    IconButton(
-                                        onClick = {
-                                            imageUri?.let { uri ->
-                                                val inputStream = context.contentResolver.openInputStream(uri)
-                                                val imageBytes = inputStream?.readBytes()
-                                                val encodedImage = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
-                                                coroutineScope.launch {
-                                                    try {
-                                                        val response = RetrofitInstance.api.uploadProfileImage(ImageRequest(email, encodedImage))
-                                                    } catch (e: Exception) {
-                                                        // Manejo de errores
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF80D8FF))
-                                            .border(2.dp, Color.White, CircleShape)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Edit profile",
-                                            tint = Color.White // Mantiene el color blanco
-                                        )
-                                    }
-
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(56.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            shape = MaterialTheme.shapes.large,
-                            elevation = CardDefaults.cardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCC40A)),
-                            border = BorderStroke(2.dp, Color.White)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(24.dp),
-                                horizontalAlignment = Alignment.Start,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                // Fila para "Usuario"
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Usuario:",
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        text = username,
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Fila para "Correo"
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Correo:",
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        text = email,
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Fila para "Rut"
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Rut:",
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        text = rut,
-                                        color = Color.Black,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-
-
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = {
-                                onLogout()
-                                navController.navigate("loginScreen")
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFfcc40d)
-                            ),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .border(2.dp, Color.White, CircleShape)
-                        ) {
-                            Text("Cerrar sesión")
-                        }
-
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(Color(0xFF0F0147)),
-                    contentAlignment = Alignment.Center
-                )
-                {
-                    Text(
-                        text = "© 2024 Universidad Católica de Temuco",
-                        color = Color.White,
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
+                            .size(115.dp) // Mantiene el tamaño del logo
+                            .offset(x = (-5).dp, y = (-20).dp) // Mantiene el offset en X y ajusta el offset en Y para subir el logo
+                            .padding(start = 0.dp, top = 0.dp) // Reducir el padding superior para no agregar espacio adicional
+                            .align(Alignment.TopStart) // Alinear a la parte superior izquierda
                     )
                 }
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 80.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Imagen de perfil circular
+                    Box(
+                        modifier = Modifier
+                            .size(130.dp)
+                            .clip(CircleShape)
+                            .border(4.dp, Color.White, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        bitmap?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "Imagen de Perfil",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(130.dp)
+                                    .clip(CircleShape)
+                            )
+                        } ?: Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Icono de Perfil",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(130.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Nombre y correo
+                    Text(
+                        text = username,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = email,
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    // Botones de opciones (como en la imagen proporcionada)
+                    ProfileOptionButton("Cambiar imagen de perfil", Icons.Default.Edit) {
+                        launcher.launch("image/*")
+                    }
+
+                    // Cambiar imagen al seleccionar nueva imagen
+                    imageUri?.let {
+                        val inputStream = context.contentResolver.openInputStream(it)
+                        val byteArray = inputStream?.readBytes()
+                        val newImageBase64 = byteArray?.let { bytes ->
+                            Base64.encodeToString(bytes, Base64.DEFAULT)
+                        }
+                        updatedImageBase64 = newImageBase64
+                        // Aquí puedes hacer una llamada a tu backend para actualizar la imagen del perfil
+                    }
+
+                    ProfileOptionButton("Mi información", Icons.Default.Person, onClick = {
+                        navController.navigate("informacion/$username/$email/$rut")
+                    })
+                    ProfileOptionButton("Mis reservas", Icons.Default.List, onClick = {
+                        navController.navigate("editarReserva")
+                    })
+                    ProfileOptionButton("Cerrar sesión", Icons.Default.ExitToApp, onClick = { onLogout() })
+                }
             }
         }
     )
 }
+
+@Composable
+fun ProfileOptionButton(text: String, icon: ImageVector, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+            .padding(vertical = 8.dp)
+            .height(60.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        elevation = ButtonDefaults.buttonElevation(8.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = Color(0xFFfcc40d))
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = text,
+                color = Color(0xFFfcc40d),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        }
+    }
+}
+
+
 
 @Preview(showBackground = true)
 @Composable
@@ -348,7 +238,7 @@ fun PerfilScreenPreview() {
             rut = "",
             isLoggedIn = true,
             onLogout = {},
-            imageBase64 = null // Imagen es opcional
+            imageBase64 = null
         )
     }
 }

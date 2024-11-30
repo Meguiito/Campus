@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -75,7 +76,8 @@ class MainActivity : ComponentActivity() {
                             onLogout = onLogout,
                             username = username,
                             email = email,
-                            rut = rut
+                            rut = rut,
+                            imageBase64 = imageBase64
                         )
                     }
 
@@ -135,6 +137,22 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    composable("informacion/{username}/{email}/{rut}") { backStackEntry ->
+                        val username = backStackEntry.arguments?.getString("username") ?: ""
+                        val email = backStackEntry.arguments?.getString("email") ?: ""
+                        val rut = backStackEntry.arguments?.getString("rut") ?: ""
+                        InformacionScreen(
+                            username = username,
+                            email = email,
+                            rut = rut,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout,
+                            navController = navController,
+                            imageBase64 = imageBase64 // Se pasa como String?
+
+                        )
+                    }
+
                     // Pantalla de edición de reserva
                     composable("editarReserva") {
                         EditarReservaScreen(
@@ -166,6 +184,14 @@ class MainActivity : ComponentActivity() {
                             onLogout = onLogout,
                             username = username,
                             email = email
+                        )
+                    }
+
+                    composable("weather") {
+                        WeatherScreen(
+                            navController = navController,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout
                         )
                     }
 

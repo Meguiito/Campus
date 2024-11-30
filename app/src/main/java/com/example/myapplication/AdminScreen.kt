@@ -155,6 +155,11 @@ fun AdminScreen(navController: NavController, username: String, email: String, r
     )
 }
 
+@Composable
+fun CustomButton(text: String, content: () -> Unit) {
+
+}
+
 // Reusable Custom Button
 @Composable
 fun adminCustomButton(text: String, onClick: () -> Unit) {

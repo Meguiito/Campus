@@ -200,8 +200,8 @@ fun ReservaScreen(
 
                     OutlinedTextField(
                         value = rut,
-                        onValueChange = { rut = it },
-                        label = { Text("RUT") },
+                        onValueChange = { rut = rut },
+                        label = { Text("$rut") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))

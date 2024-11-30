@@ -17,7 +17,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 // URL a la API en localhost
-private const val BASE_URL = "http://192.168.1.10:5000/"
+private const val BASE_URL = "http://192.168.1.8:5000/"
 
 interface ApiService {
     @POST("users")
@@ -83,6 +83,13 @@ interface ApiService {
     suspend fun deleteUserById(@Path("id") id: String): UsuarioResponse2
 
 
+    @GET("forecast.json")
+    suspend fun getWeatherForecast(
+        @Query("key") apiKey: String,
+        @Query("q") location: String,
+        @Query("days") days: Int
+    ): WeatherForecastResponse
+
 }
 
 object RetrofitInstance {
@@ -95,7 +102,37 @@ object RetrofitInstance {
     }
 }
 
+object WeatherRetrofitInstance {
+    val api: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.weatherapi.com/v1/")  // URL de WeatherAPI
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+}
 // Data classes
+//
+data class WeatherResponse(
+    val main: Main,
+    val weather: List<Weather>,
+    val name: String
+)
+
+data class Main(
+    val temp: Float,
+    val feels_like: Float,
+    val temp_min: Float,
+    val temp_max: Float,
+    val pressure: Int,
+    val humidity: Int
+)
+
+data class Weather(
+    val description: String,
+    val icon: String
+)
+
 data class EmailRequest(val email: String)
 data class ImageRequest(val email: String, val image: String)  // Imagen en base64
 
@@ -142,6 +179,39 @@ data class ReservaResponse(
     val duracion: String,
     val mes: String,
     val dia: String
+)
+
+// Data classes
+data class WeatherForecastResponse(
+    val forecast: Forecast
+)
+
+data class Forecast(
+    val forecastday: List<ForecastDay>
+)
+
+data class ForecastDay(
+    val date: String,
+    val day: Day
+)
+
+data class Day(
+    val condition: Condition,
+    val maxtemp_c: Float,
+    val mintemp_c: Float
+)
+
+data class Condition(
+    val text: String,
+    val icon: String // URL del icono
+)
+
+data class WeatherForecastDay(
+    val date: String,
+    val conditionText: String,
+    val iconUrl: String,
+    val maxTemp: Float,
+    val minTemp: Float
 )
 
 data class DiasReservadosResponse(

@@ -72,6 +72,30 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    implementation ("androidx.compose.foundation:foundation:1.5.2")
+    implementation ("com.google.accompanist:accompanist-flowlayout:0.31.3-beta")
+
+    implementation ("androidx.activity:activity-compose:1.7.2")
+    implementation ("androidx.compose.ui:ui:1.5.3")
+    implementation ("androidx.compose.material3:material3:1.2.0")
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.5.3")
+
+    // Animations
+    implementation ("androidx.compose.animation:animation:1.5.3")
+
+    // Navigation component for Compose
+    implementation ("androidx.navigation:navigation-compose:2.7.3")
+
+    // Optional - Compose Material Icons
+    implementation ("androidx.compose.material:material-icons-core:1.5.3")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.3")
+
+    // For Image loading (coil)
+    implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation ("io.coil-kt:coil-compose:2.0.0")
+    // Compose Preview & Testing
+    debugImplementation ("androidx.compose.ui:ui-tooling:1.5.3")
+    debugImplementation ("androidx.compose.ui:ui-test-manifest:1.5.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -4,8 +4,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -13,10 +15,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +36,14 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String, rut: String) {
+fun CalendarScreen(
+    navController: NavController,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
+    username: String,
+    email: String,
+    rut: String
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
@@ -51,9 +60,9 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
         // Llamada a la API para obtener los días reservados del mes actual
         try {
             val response = RetrofitInstance.api.getReservasMes(currentMonth)
-            diasReservados = response.dias_reservados_parciales // Días con reservas parciales
-            diasCompletamenteReservados = response.dias_reservados_completos // Días con todas las canchas reservadas
-            diasNoReservados = response.dias_no_reservados // Días no reservados que son seleccionables
+            diasReservados = response.dias_reservados_parciales
+            diasCompletamenteReservados = response.dias_reservados_completos
+            diasNoReservados = response.dias_no_reservados
         } catch (e: Exception) {
             println("Error al obtener reservas: ${e.message}")
         }
@@ -109,56 +118,56 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.uctinformatica),
-                    contentDescription = "Fondo",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 60.dp, bottom = 50.dp)
-                        .align(Alignment.TopStart),
-                    contentScale = ContentScale.FillHeight
-                )
-
+                // Fondo de la parte superior con degradado y borde redondeado
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFFFCC40A)),
-                    contentAlignment = Alignment.CenterStart
+                        .height(280.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF1565C0), // Azul oscuro
+                                    Color(0xFF42A5F5)  // Azul claro
+                                )
+                            ),
+                            shape = RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp)
+                        )
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
+                    IconButton(
+                        onClick = { coroutineScope.launch { drawerState.open() } },
                         modifier = Modifier
-                            .size(115.dp)
-                            .offset(x = (-5).dp)
-                            .padding(start = 0.dp, top = 10.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                IconButton(
-                    onClick = { coroutineScope.launch { drawerState.open() } },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Abrir menú")
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .background(Color(0xFF7AC4C0), shape = CircleShape)
+                            .size(48.dp)
+                    ) {
+                        Icon(Icons.Default.Menu, contentDescription = "Abrir menú", tint = Color.White)
+                    }
                 }
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp, top = 80.dp),
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Calendario de Reservas",
+                        text = "Gracias por reservar con nosotros, $username",
                         color = Color.White,
-                        fontSize = 24.sp,
-                        modifier = Modifier.padding(16.dp)
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Text(
+                        text = "Selecciona el dia de tu reserva",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Light,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
 
                     // Llamada al calendario con los días reservados y completamente reservados
@@ -167,33 +176,18 @@ fun CalendarScreen(navController: NavController, isLoggedIn: Boolean, onLogout: 
                         navController.navigate("reserva/${currentMonth}/${selectedDay?.dayOfMonth}")
                     }
                 }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(Color(0xFF0F0147)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "© 2024 Universidad Católica de Temuco",
-                        color = Color.White,
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
         }
     )
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarView(
     diasReservados: List<Int>,
     diasCompletamenteReservados: List<Int>,
-    diasNoReservados: List<Int>, // Nueva lista de días no reservados
+    diasNoReservados: List<Int>,
     onDateSelected: (LocalDate) -> Unit
 ) {
     val currentDate = remember { LocalDate.now() }
@@ -207,14 +201,14 @@ fun CalendarView(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()) + " " + currentMonth.year,
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
                 fontSize = 20.sp,
                 color = Color.White,
                 modifier = Modifier.padding(16.dp)
             )
         }
 
-        for (week in 0..5) { // Cambiar a 5 para cubrir todas las semanas del mes
+        for (week in 0..5) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -227,7 +221,6 @@ fun CalendarView(
                         val currentDateInMonth = currentMonth.atDay(dayOfMonth)
                         val isReservado = dayOfMonth in diasReservados
                         val isCompletamenteReservado = dayOfMonth in diasCompletamenteReservados
-                        val isNoReservado = dayOfMonth in diasNoReservados // Verificación si el día es no reservado
                         val isPastDate = currentDateInMonth.isBefore(currentDate)
 
                         Box(
@@ -235,23 +228,27 @@ fun CalendarView(
                                 .size(50.dp)
                                 .background(
                                     when {
-                                        isCompletamenteReservado -> Color.Gray // Día completamente reservado
-                                        selectedDate == currentDateInMonth -> Color.Yellow // Día seleccionado
-                                        isPastDate -> Color.Gray // Día pasado
-                                        dayOfMonth == currentDate.dayOfMonth -> Color.Cyan // Día actual
-                                        isNoReservado -> Color.White // Día no reservado y seleccionable
-                                        else -> Color.White // Días normales
-                                    }, RoundedCornerShape(8.dp)
+                                        isCompletamenteReservado || isPastDate -> Color(0xFFFFC107) // Amarillo completo
+                                        else -> Color.White
+                                    },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    width = if (!isCompletamenteReservado && !isPastDate) 2.dp else 0.dp,
+                                    color = if (!isCompletamenteReservado && !isPastDate) Color(0xFFFFC107) else Color.Transparent,
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                                 .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = dayOfMonth.toString(),
-                                color = if (selectedDate == currentDateInMonth || isCompletamenteReservado) Color.White else Color.Black,
+                                color = if (isCompletamenteReservado || isPastDate) Color.White else Color.Black,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clickable(enabled = !isPastDate && (isNoReservado || !isCompletamenteReservado)) { // Permitir seleccionar días no reservados y no completamente reservados
+                                    .clickable(
+                                        enabled = !isPastDate && !isCompletamenteReservado
+                                    ) {
                                         selectedDate = currentDateInMonth
                                         onDateSelected(selectedDate!!)
                                     },
@@ -260,12 +257,11 @@ fun CalendarView(
                             )
                         }
                     } else {
-                        Spacer(modifier = Modifier.size(50.dp)) // Espacio para los días vacíos
+                        Spacer(modifier = Modifier.size(50.dp))
                     }
                 }
             }
         }
-
     }
 }
 
@@ -274,7 +270,13 @@ fun CalendarView(
 @Composable
 fun CalendarScreenPreview() {
     MyApplicationTheme {
-        val navController = rememberNavController()
-        CalendarScreen(navController = navController, isLoggedIn = true, onLogout = {} ,username = "", rut = "", email = "")
+        CalendarScreen(
+            navController = rememberNavController(),
+            isLoggedIn = true,
+            onLogout = {},
+            username = "",
+            email = "",
+            rut = ""
+        )
     }
 }

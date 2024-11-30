@@ -53,6 +53,7 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+
                 Text(
                     text = "Menú",
                     fontSize = 20.sp,
@@ -106,7 +107,7 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                         .fillMaxWidth()
                         .height(60.dp)
                         .align(Alignment.TopCenter)
-                        .background(Color(0xFFFCC40A)),
+                        .background(Color.White),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Image(
