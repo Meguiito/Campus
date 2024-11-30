@@ -31,24 +31,44 @@ def admin_required(f):
 @app.route('/users', methods=['POST'])
 def create_user():
     try:
+        # Obtener los datos del cuerpo de la solicitud
         username = request.json.get("username")
         rut = request.json.get("rut")
         password = request.json.get("password")
         email = request.json.get("email")
-        rol = request.json.get("rol", "usuario")  
+        rol = request.json.get("rol", "usuario")  # Valor por defecto: "usuario"
+        telefono = request.json.get("telefono")
+        direccion = request.json.get("direccion")
+        carrera = request.json.get("carrera")
 
-        if username and password and email:
+        # Verificar que los campos obligatorios estén presentes
+        if username and password and email and telefono and direccion and carrera:
+            # Generar el hash de la contraseña
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-            result = mongo.db.Usuarios.insert_one(
-                {'rut': rut, 'username': username, 'password': hashed_password.decode('utf-8'), 'email': email, 'rol': rol}
-            )
+
+            # Insertar el usuario en la base de datos
+            result = mongo.db.Usuarios.insert_one({
+                'rut': rut,
+                'username': username,
+                'password': hashed_password.decode('utf-8'),
+                'email': email,
+                'rol': rol,
+                'telefono': telefono,
+                'direccion': direccion,
+                'carrera': carrera
+            })
+
+            # Respuesta exitosa
             response = {
                 'id': str(result.inserted_id),
                 'rut': rut,
                 'username': username,
                 'email': email,
-                'rol': rol
+                'rol': rol,
+                'telefono': telefono,
+                'direccion': direccion,
+                'carrera': carrera
             }
             return jsonify(response), 201 
         else:
