@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -98,35 +99,21 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.uctinformatica),
-                    contentDescription = "Fondo",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 60.dp, bottom = 50.dp)
-                        .align(Alignment.TopStart),
-                    contentScale = ContentScale.FillHeight
-                )
-
-                // Barra superior fija
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFFFCC40A)),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(115.dp)
-                            .offset(x = (-5).dp)
-                            .padding(start = 0.dp, top = 10.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF1565C0), // Azul más oscuro
+                                    Color(0xFF42A5F5)  // Azul más claro
+                                )
+                            ),
+                            shape = RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp)
+                        )
+                )
+
 
                 IconButton(
                     onClick = { scope.launch { drawerState.open() } },

@@ -37,6 +37,9 @@ class MainActivity : ComponentActivity() {
                 var username by remember { mutableStateOf("") }
                 var email by remember { mutableStateOf("") }
                 var rut by remember { mutableStateOf("") }
+                var carrera by remember { mutableStateOf("") }
+                var direccion by remember { mutableStateOf("") }
+
                 var imageBase64 by remember { mutableStateOf<String?>(null) } // Cambiar a String? para que pueda ser nulo
 
                 // Definir el destino de inicio según el estado de sesión y tipo de usuario
@@ -48,12 +51,15 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // Pantalla de login
                     composable("login") {
-                        LoginForm(navController) { user, userEmail, userRut, userImage ->
+                        LoginForm(navController) { user, userEmail, userRut, userCarrera, userDireccion, userImage ->
                             isLoggedIn = true
                             username = user
                             email = userEmail
                             rut = userRut
+                            carrera = userCarrera  // Nuevo campo
+                            direccion = userDireccion // Nuevo campo
                             imageBase64 = userImage // Acepta valor nulo
+
                             // Verificar si el usuario es administrador
                             if (userEmail == "admin@uct.cl") {
                                 isAdmin = true
@@ -77,9 +83,12 @@ class MainActivity : ComponentActivity() {
                             username = username,
                             email = email,
                             rut = rut,
+                            carrera = carrera,  // Nuevo campo
+                            direccion = direccion, // Nuevo campo
                             imageBase64 = imageBase64
                         )
                     }
+
 
                     // Pantalla de reservas
                     composable("reserva/{mes}/{dia}") { backStackEntry ->
@@ -93,7 +102,8 @@ class MainActivity : ComponentActivity() {
                             diaSeleccionado = dia,
                             username = username,
                             email = email,
-                            rut = rut
+                            rut = rut,
+                            carrera = carrera
                         )
                     }
 
@@ -122,14 +132,18 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // Pantalla de perfil de usuario
-                    composable("perfil/{username}/{email}/{rut}") { backStackEntry ->
+                    composable("perfil/{username}/{email}/{rut}/{carrera}/{direccion}") { backStackEntry ->
                         val username = backStackEntry.arguments?.getString("username") ?: ""
                         val email = backStackEntry.arguments?.getString("email") ?: ""
                         val rut = backStackEntry.arguments?.getString("rut") ?: ""
+                        val carrera = backStackEntry.arguments?.getString("carrera") ?: ""
+                        val direccion = backStackEntry.arguments?.getString("direccion") ?: ""
                         PerfilScreen(
                             username = username,
                             email = email,
                             rut = rut,
+                            carrera = carrera,
+                            direccion= direccion,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             navController = navController,
@@ -138,14 +152,18 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("informacion/{username}/{email}/{rut}") { backStackEntry ->
+                    composable("informacion/{username}/{email}/{rut}/{carrera}/{direccion}") { backStackEntry ->
                         val username = backStackEntry.arguments?.getString("username") ?: ""
                         val email = backStackEntry.arguments?.getString("email") ?: ""
                         val rut = backStackEntry.arguments?.getString("rut") ?: ""
+                        val carrera = backStackEntry.arguments?.getString("carrera") ?: ""
+                        val direccion = backStackEntry.arguments?.getString("direccion") ?: ""
                         InformacionScreen(
                             username = username,
                             email = email,
                             rut = rut,
+                            carrera = carrera,
+                            direccion = direccion,
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             navController = navController,

@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 
 @Composable
-fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String, String?) -> Unit) {
+fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String,String,String, String?) -> Unit) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var isLoading by remember { mutableStateOf(false) }
@@ -149,8 +149,11 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
                                                 userInfo.username,
                                                 userInfo.email,
                                                 userInfo.rut,
+                                                userInfo.carrera,
+                                                userInfo.direccion,
                                                 userInfo.image
                                             )
+
                                         } else {
                                             errorMessage = response.error
                                         }

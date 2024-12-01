@@ -16,8 +16,10 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-// URL a la API en localhost
-private const val BASE_URL = "http://192.168.4.1:5000"
+
+
+private const val BASE_URL = "http://192.168.1.12:5000/"
+
 
 interface ApiService {
     @POST("users")
@@ -156,7 +158,9 @@ data class UserResponse(
     val username: String,
     val email: String,
     val rut: String,
-    val image: String // Propiedad para la imagen de perfil
+    val carrera: String,  // Nuevo campo
+    val direccion: String,  // Nuevo campo
+    val image: String? = null
 )
 
 data class ReservasMesResponse(

@@ -45,6 +45,8 @@ fun MainScreen(
     onLogout: () -> Unit,
     username: String,
     email: String,
+    carrera: String,
+    direccion: String,
     imageBase64: String?,
     rut: String
 ) {
@@ -116,7 +118,7 @@ fun MainScreen(
                             label = { Text("Perfil") },
                             selected = false,
                             onClick = {
-                                navController.navigate("perfil/$username/$email/$rut")
+                                navController.navigate("perfil/$username/$email/$rut/$carrera/$direccion")
                                 coroutineScope.launch { drawerState.close() }
                             }
                         )
@@ -489,7 +491,9 @@ fun MainScreenPreview() {
             email = "",
             username = "Louise",
             rut = "",
-            imageBase64 = ""
+            imageBase64 = "",
+            carrera = "",
+            direccion=""
         )
     }
 }

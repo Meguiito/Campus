@@ -53,6 +53,8 @@ fun PerfilScreen(
     onLogout: () -> Unit,
     username: String,
     email: String,
+    direccion: String,
+    carrera: String,
     rut: String,
     imageBase64: String?
 ) {
@@ -185,7 +187,7 @@ fun PerfilScreen(
                     }
 
                     ProfileOptionButton("Mi información", Icons.Default.Person, onClick = {
-                        navController.navigate("informacion/$username/$email/$rut")
+                        navController.navigate("informacion/$username/$email/$rut/$carrera/$direccion")
                     })
                     ProfileOptionButton("Mis reservas", Icons.Default.List, onClick = {
                         navController.navigate("editarReserva")
@@ -238,7 +240,9 @@ fun PerfilScreenPreview() {
             rut = "",
             isLoggedIn = true,
             onLogout = {},
-            imageBase64 = null
+            imageBase64 = null,
+            carrera = "",
+            direccion = ""
         )
     }
 }

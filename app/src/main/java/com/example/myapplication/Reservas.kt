@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -32,11 +33,11 @@ fun ReservaScreen(
     onLogout: () -> Unit,
     mesSeleccionado: String,
     diaSeleccionado: String,
+    carrera: String,
     rut: String,
     username: String, email: String
 ) {
     var nombre by remember { mutableStateOf("") }
-    var carrera by remember { mutableStateOf("") }
     var canchaSeleccionada by remember { mutableStateOf("") }
     var duracionSeleccionada by remember { mutableStateOf("") }
     var canchas by remember { mutableStateOf(listOf<String>()) }
@@ -133,35 +134,21 @@ fun ReservaScreen(
                     .background(Color.White)
             ) {
                 // Fondo de la sección entre las barras
-                Image(
-                    painter = painterResource(id = R.drawable.uctinformatica),
-                    contentDescription = "Fondo",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 60.dp, bottom = 50.dp)
-                        .align(Alignment.TopStart),
-                    contentScale = ContentScale.FillHeight
-                )
-
-                // Barra superior con el logo
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFFFCC40A)),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(115.dp)
-                            .offset(x = (-5).dp)
-                            .padding(start = 0.dp, top = 10.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF1565C0), // Azul más oscuro
+                                    Color(0xFF42A5F5)  // Azul más claro
+                                )
+                            ),
+                            shape = RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp)
+                        )
+                )
+                
 
                 // Icono para abrir el Drawer
                 IconButton(
@@ -200,16 +187,16 @@ fun ReservaScreen(
 
                     OutlinedTextField(
                         value = rut,
-                        onValueChange = { },
-                        label = { Text("$rut") },
+                        onValueChange = {"$rut" },
+                        label = { Text("Rut") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = carrera,
-                        onValueChange = { carrera = it },
-                        label = { Text("Carrera en Curso") },
+                        onValueChange = { "$carrera"},
+                        label = { Text("Carrera") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -366,7 +353,8 @@ fun ReservaScreenPreview() {
             diaSeleccionado = "16",
             username = "",
             rut="",
-            email = ""
+            email = "",
+            carrera = ""
         )
     }
 }
