@@ -416,15 +416,10 @@ fun RecommendedSection() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Recommended",
+                text = "Canchas",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
                 color = Color.Black
-            )
-            Text(
-                text = "View More",
-                fontSize = 14.sp,
-                color = Color(0xFF3D5AFE)
             )
         }
         Spacer(modifier = Modifier.height(10.dp))

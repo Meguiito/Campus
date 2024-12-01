@@ -99,78 +99,84 @@ fun PerfilScreen(
         },
         content = {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Fondo degradado
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF1565C0), // Azul más oscuro (puedes ajustarlo)
-                                Color(0xFF42A5F5), // Azul más claro (puedes ajustarlo)
-                            )
-                        ))
-                ) {
-
-                    Image(
-                        painter = painterResource(id = R.drawable.logo), // Reemplaza 'logo' con el nombre de tu archivo
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(115.dp) // Mantiene el tamaño del logo
-                            .offset(x = (-5).dp, y = (-20).dp) // Mantiene el offset en X y ajusta el offset en Y para subir el logo
-                            .padding(start = 0.dp, top = 0.dp) // Reducir el padding superior para no agregar espacio adicional
-                            .align(Alignment.TopStart) // Alinear a la parte superior izquierda
-                    )
-                }
-
+                        .background(Brush.verticalGradient(colors = listOf(Color(0xFF1565C0), Color(0xFF42A5F5))))
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 80.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Imagen de perfil circular
-                    Box(
-                        modifier = Modifier
-                            .size(130.dp)
-                            .clip(CircleShape)
-                            .border(4.dp, Color.White, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        bitmap?.let {
-                            Image(
-                                bitmap = it.asImageBitmap(),
-                                contentDescription = "Imagen de Perfil",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(130.dp)
-                                    .clip(CircleShape)
+                    // Imagen de perfil circular con botón
+                    Box(contentAlignment = Alignment.TopEnd) {
+                        Box(
+                            modifier = Modifier
+                                .size(130.dp)
+                                .clip(CircleShape)
+                                .border(4.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            bitmap?.let {
+                                Image(
+                                    bitmap = it.asImageBitmap(),
+                                    contentDescription = "Imagen de Perfil",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(130.dp).clip(CircleShape)
+                                )
+                            } ?: Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Icono de Perfil",
+                                tint = Color.Gray,
+                                modifier = Modifier.size(130.dp)
                             )
-                        } ?: Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Icono de Perfil",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(130.dp)
-                        )
+                        }
+                        IconButton(
+                            onClick = {
+                                imageUri?.let {
+                                    val inputStream = context.contentResolver.openInputStream(it)
+                                    val byteArray = inputStream?.readBytes()
+                                    val newImageBase64 = byteArray?.let { bytes ->
+                                        Base64.encodeToString(bytes, Base64.DEFAULT)
+                                    }
+                                    updatedImageBase64 = newImageBase64
+                                    // Llamada al backend
+                                    coroutineScope.launch {
+                                        try {
+                                            val imageRequest = ImageRequest(email = email, image = newImageBase64 ?: "")
+                                            val response = RetrofitInstance.api.uploadProfileImage(imageRequest)
+                                            if (response.message.isNotEmpty()) {
+                                                // Notifica éxito
+                                            }
+                                        } catch (e: Exception) {
+                                            // Maneja el error
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar Imagen",
+                                tint = Color.White
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    // Nombre y correo
                     Text(
                         text = username,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
-                    Text(
-                        text = email,
-                        fontSize = 16.sp,
-                        color = Color.White
-                    )
-
+                    Text(text = email, fontSize = 16.sp, color = Color.White)
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Botones de opciones (como en la imagen proporcionada)
+
                     ProfileOptionButton("Cambiar imagen de perfil", Icons.Default.Edit) {
                         launcher.launch("image/*")
                     }
@@ -185,19 +191,19 @@ fun PerfilScreen(
                         updatedImageBase64 = newImageBase64
                         // Aquí puedes hacer una llamada a tu backend para actualizar la imagen del perfil
                     }
-
-                    ProfileOptionButton("Mi información", Icons.Default.Person, onClick = {
+                    ProfileOptionButton("Mi información", Icons.Default.Person) {
                         navController.navigate("informacion/$username/$email/$rut/$carrera/$direccion")
-                    })
-                    ProfileOptionButton("Mis reservas", Icons.Default.List, onClick = {
+                    }
+                    ProfileOptionButton("Mis reservas", Icons.Default.List) {
                         navController.navigate("editarReserva")
-                    })
+                    }
                     ProfileOptionButton("Cerrar sesión", Icons.Default.ExitToApp, onClick = { onLogout() })
                 }
             }
         }
     )
 }
+
 
 @Composable
 fun ProfileOptionButton(text: String, icon: ImageVector, onClick: () -> Unit) {
