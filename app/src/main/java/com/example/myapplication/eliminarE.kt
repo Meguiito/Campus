@@ -24,23 +24,24 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit, username: String, email: String) {
-    var usuarios by remember { mutableStateOf<List<UsuarioResponse2>>(emptyList()) }
+fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit, username: String, email: String) {
+    var canchas by remember { mutableStateOf<List<CanchaResponse2>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    // Obtener la lista de usuarios
+    // Obtener la lista de canchas
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 isLoading = true
-                usuarios = RetrofitInstance.api.getAllUsers() // Llamada al endpoint para obtener usuarios
+                canchas = RetrofitInstance.api.getAllcanchas() // Llamada al endpoint para obtener canchas
                 errorMessage = null
             } catch (e: Exception) {
-                errorMessage = "Error al obtener usuarios: ${e.localizedMessage}"
+                errorMessage = "Error al obtener canchas: ${e.localizedMessage}"
             } finally {
                 isLoading = false
             }
@@ -143,8 +144,8 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top
                     ) {
-                        usuarios.forEach { usuario ->
-                            // Tarjeta con la información del usuario
+                        canchas.forEach { cancha ->
+                            // Tarjeta con la información de la cancha
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -157,22 +158,23 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                                 Column(
                                     modifier = Modifier.padding(16.dp)
                                 ) {
-                                    Text(text = "Nombre de usuario: ${usuario.username}", color = Color.Black)
-                                    Text(text = "Email: ${usuario.email}", color = Color.Black)
+                                    Text(text = "Nombre: ${cancha.nombre}", color = Color.Black)
+                                    Text(text = "Tipo: ${cancha.tipo}", color = Color.Black)
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    // Botón para eliminar el usuario
+                                    // Botón para eliminar la cancha
                                     Button(
                                         onClick = {
                                             scope.launch {
                                                 try {
                                                     isLoading = true
-                                                    // Llamada para eliminar por ID
-                                                    RetrofitInstance.api.deleteUserById(usuario.id)
-                                                    navController.navigate("eliminarUsuario")
+                                                    // Llamada para eliminar por nombre
+                                                    RetrofitInstance.api.deleteEspacioByNombre(cancha.nombre)
+                                                    // Recargar la lista de canchas tras la eliminación
+                                                    canchas = RetrofitInstance.api.getAllcanchas()
                                                 } catch (e: Exception) {
-                                                    errorMessage = "Error al eliminar usuario: ${e.localizedMessage}"
+                                                    errorMessage = "Error al eliminar cancha: ${e.localizedMessage}"
                                                 } finally {
                                                     isLoading = false
                                                 }
@@ -209,11 +211,12 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
         }
     )
 }
+
 @Preview(showBackground = true)
 @Composable
-fun EliminarUsuarioScreenPreview() {
+fun EliminarCanchaScreenPreview() {
     MyApplicationTheme {
-        EliminarUsuarioScreen(
+        EliminarCanchaScreen(
             navController = rememberNavController(),
             isLoggedIn = true,
             onLogout = {},

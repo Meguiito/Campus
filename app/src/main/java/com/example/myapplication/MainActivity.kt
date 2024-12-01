@@ -117,6 +117,7 @@ class MainActivity : ComponentActivity() {
                             email = email,
                             rut = rut,
                             onLogout = onLogout
+
                         )
                     }
 
@@ -183,7 +184,17 @@ class MainActivity : ComponentActivity() {
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             username = username,
-                            email = email
+                            email = email,
+                        )
+                    }
+
+                    composable("eliminarCanchas") {
+                        EliminarCanchaScreen(
+                            navController = navController,
+                            isLoggedIn = isLoggedIn,
+                            onLogout = onLogout,
+                            username = username,
+                            email = email,
                         )
                     }
 

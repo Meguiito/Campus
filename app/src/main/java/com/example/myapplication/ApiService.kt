@@ -17,11 +17,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 // URL a la API en localhost
-private const val BASE_URL = "http://192.168.1.8:5000/"
+private const val BASE_URL = "http://192.168.4.1:5000"
 
 interface ApiService {
     @POST("users")
     suspend fun createUser(@Body user: UserRequest): ApiResponse
+
+
 
     @POST("users/verify")
     suspend fun verifyUser(@Body loginRequest: LoginRequest): ApiResponse
@@ -83,6 +85,12 @@ interface ApiService {
     suspend fun deleteUserById(@Path("id") id: String): UsuarioResponse2
 
 
+    @DELETE("espacios/{nombre}")
+    suspend fun deleteEspacioByNombre(@Path("nombre") nombre: String): ApiResponse
+
+    @GET("canchas")
+    suspend fun getAllcanchas(): List<CanchaResponse2>
+
     @GET("forecast.json")
     suspend fun getWeatherForecast(
         @Query("key") apiKey: String,
@@ -139,7 +147,8 @@ data class ImageRequest(val email: String, val image: String)  // Imagen en base
 data class UsuarioResponse2(
     val id: String,
     val username: String,
-    val email: String
+    val email: String,
+    val rut: String
 )
 
 
@@ -217,6 +226,12 @@ data class WeatherForecastDay(
 data class DiasReservadosResponse(
     val dias_reservados_parciales: List<Int>, // Días con reservas parciales
     val dias_reservados_completos: List<Int>  // Días completamente reservados
+)
+
+data class CanchaResponse2(
+    val _id: String,
+    val nombre: String,
+    val tipo: String
 )
 
 data class UserRequest(val rut: String, val username: String, val password: String, val email: String)
