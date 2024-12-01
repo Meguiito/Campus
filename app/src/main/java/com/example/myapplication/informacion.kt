@@ -146,13 +146,13 @@ fun InformacionScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Campos de información con líneas divisorias
-            InfoField(label = "Mobile:", value = carrera)
+            InfoField(label = "Carrera:", value = carrera)
             Divider(color = Color.Gray, thickness = 1.dp)
-            InfoField(label = "Tel:", value = username)
+            InfoField(label = "Nombre de usuario:", value = username)
             Divider(color = Color.Gray, thickness = 1.dp)
-            InfoField(label = "Address:", value = rut)
+            InfoField(label = "Rut:", value = rut)
             Divider(color = Color.Gray, thickness = 1.dp)
-            InfoField(label = "Postal Code:", value = direccion)
+            InfoField(label = "Direccion:", value = direccion)
 
             Spacer(modifier = Modifier.height(24.dp))
 

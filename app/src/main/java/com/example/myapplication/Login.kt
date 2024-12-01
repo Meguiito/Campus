@@ -24,9 +24,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
+import kotlinx.coroutines.withTimeout
 
 @Composable
-fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String,String,String, String?) -> Unit) {
+fun LoginForm(navController: NavController, onLoginSuccess: (String, String, String, String, String, String?) -> Unit) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var isLoading by remember { mutableStateOf(false) }
@@ -134,31 +135,33 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
                             if (email.text.isNotEmpty() && password.text.isNotEmpty()) {
                                 scope.launch {
                                     isLoading = true
+                                    errorMessage = null
                                     try {
-                                        val response = RetrofitInstance.api.verifyUser(
-                                            LoginRequest(
-                                                email = email.text,
-                                                password = password.text
+                                        withTimeout(5000L) { // 5 segundos de timeout
+                                            val response = RetrofitInstance.api.verifyUser(
+                                                LoginRequest(
+                                                    email = email.text,
+                                                    password = password.text
+                                                )
                                             )
-                                        )
-                                        if (response.error == null) {
-                                            val userInfo = RetrofitInstance.api.getUserByEmail(
-                                                EmailRequest(email.text)
-                                            )
-                                            onLoginSuccess(
-                                                userInfo.username,
-                                                userInfo.email,
-                                                userInfo.rut,
-                                                userInfo.carrera,
-                                                userInfo.direccion,
-                                                userInfo.image
-                                            )
-
-                                        } else {
-                                            errorMessage = response.error
+                                            if (response.error == null) {
+                                                val userInfo = RetrofitInstance.api.getUserByEmail(
+                                                    EmailRequest(email.text)
+                                                )
+                                                onLoginSuccess(
+                                                    userInfo.username,
+                                                    userInfo.email,
+                                                    userInfo.rut,
+                                                    userInfo.carrera,
+                                                    userInfo.direccion,
+                                                    userInfo.image
+                                                )
+                                            } else {
+                                                errorMessage = response.error
+                                            }
                                         }
                                     } catch (e: Exception) {
-                                        errorMessage = "Error: ${e.localizedMessage}"
+                                        errorMessage = "Error: ${e.localizedMessage}. Verifica tu conexión."
                                     } finally {
                                         isLoading = false
                                     }
@@ -195,3 +198,4 @@ fun LoginForm(navController: NavController, onLoginSuccess: (String, String, Str
         }
     }
 }
+

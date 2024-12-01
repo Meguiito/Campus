@@ -27,10 +27,20 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String) {
+fun EliminarReservaScreen(
+    navController: NavController,
+    rut: String,
+    carrera: String,
+    direccion:String,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
+    username: String,
+    email: String
+) {
     var reservas by remember { mutableStateOf<List<ReservaResponse>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var reservaToDelete by remember { mutableStateOf<ReservaResponse?>(null) } // Reserva seleccionada para eliminar
     val scope = rememberCoroutineScope()
     val coroutineScope = rememberCoroutineScope()
 
@@ -72,7 +82,7 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                     label = { Text("Perfil") },
                     selected = false,
                     onClick = {
-                        navController.navigate("perfil/$username/$email/$rut")
+                        navController.navigate("perfil/$username/$email/$rut/$carrera/$direccion")
                         coroutineScope.launch { drawerState.close() }
                     }
                 )
@@ -137,7 +147,7 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                                     .padding(16.dp),
                                 shape = MaterialTheme.shapes.large,
                                 elevation = CardDefaults.cardElevation(4.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFCC40A)),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
                                 border = BorderStroke(2.dp, Color.White)
                             ) {
                                 Column(
@@ -155,17 +165,9 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                                     // Botón para eliminar la reserva
                                     Button(
                                         onClick = {
-                                            scope.launch {
-                                                try {
-                                                    RetrofitInstance.api.deleteReserva(reserva.id)
-                                                    // Eliminar la reserva de la lista local después de eliminarla en el servidor
-                                                    reservas = reservas.filter { it.id != reserva.id }
-                                                } catch (e: Exception) {
-                                                    errorMessage = "Error al eliminar la reserva: ${e.localizedMessage}"
-                                                }
-                                            }
+                                            reservaToDelete = reserva // Configurar la reserva seleccionada
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Cyan),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                                         modifier = Modifier.align(Alignment.End)
                                     ) {
                                         Text(text = "Eliminar")
@@ -176,13 +178,47 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
                     }
                 }
 
+                // Diálogo de confirmación
+                reservaToDelete?.let { reserva ->
+                    AlertDialog(
+                        onDismissRequest = { reservaToDelete = null },
+                        title = { Text(text = "Confirmar eliminación") },
+                        text = { Text("¿Estás seguro de que deseas eliminar esta reserva?") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        try {
+                                            RetrofitInstance.api.deleteReserva(reserva.id)
+                                            reservas = reservas.filter { it.id != reserva.id }
+                                            reservaToDelete = null
+                                        } catch (e: Exception) {
+                                            errorMessage = "Error al eliminar la reserva: ${e.localizedMessage}"
+                                        }
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                            ) {
+                                Text("Sí, eliminar")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { reservaToDelete = null }
+                            ) {
+                                Text("Cancelar")
+                            }
+                        }
+                    )
+                }
+
                 // Barra inferior
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xFF0F0147)),
+                        .background(Color(0xFF000000)),
                     contentAlignment = Alignment.Center
                 )
                 {
@@ -198,6 +234,7 @@ fun EliminarReservaScreen(navController: NavController, rut: String, isLoggedIn:
     )
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun EliminarReservaScreenPreview() {
@@ -208,7 +245,9 @@ fun EliminarReservaScreenPreview() {
             onLogout = {},
             rut = "",
             username = "",
-            email=""
+            email="",
+            carrera = "",
+            direccion = ""
         )
     }
 }

@@ -31,6 +31,8 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var usuarioToDelete by remember { mutableStateOf<UsuarioResponse2?>(null) }
 
     // Obtener la lista de usuarios
     LaunchedEffect(Unit) {
@@ -97,41 +99,10 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                         )
                     )
             ) {
-
-
-                // Barra superior
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFF2559A8)), // Color de la barra superior
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(115.dp)
-                            .offset(x = (-5).dp)
-                            .padding(start = 0.dp, top = 10.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                IconButton(
-                    onClick = { scope.launch { drawerState.open() } },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Abrir menú", tint = Color(0xFF2559A8)) // Ícono en el color de la paleta
-                }
-
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF2559A8) // Indicador de carga en color de la paleta
+                        color = Color(0xFF2559A8)
                     )
                 } else if (errorMessage != null) {
                     Text(errorMessage ?: "Error desconocido", color = MaterialTheme.colorScheme.error)
@@ -151,8 +122,8 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                                     .padding(16.dp),
                                 shape = MaterialTheme.shapes.large,
                                 elevation = CardDefaults.cardElevation(4.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)), // Tarjeta en un color distintivo
-                                border = BorderStroke(2.dp, Color(0xFF2559A8)) // Borde de la tarjeta
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+                                border = BorderStroke(2.dp, Color(0xFF2559A8))
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp)
@@ -162,23 +133,13 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    // Botón para eliminar el usuario
+                                    // Botón para mostrar confirmación antes de eliminar
                                     Button(
                                         onClick = {
-                                            scope.launch {
-                                                try {
-                                                    isLoading = true
-                                                    // Llamada para eliminar por ID
-                                                    RetrofitInstance.api.deleteUserById(usuario.id)
-                                                    navController.navigate("eliminarUsuario")
-                                                } catch (e: Exception) {
-                                                    errorMessage = "Error al eliminar usuario: ${e.localizedMessage}"
-                                                } finally {
-                                                    isLoading = false
-                                                }
-                                            }
+                                            usuarioToDelete = usuario
+                                            showConfirmationDialog = true
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2559A8)), // Botón en color de la paleta
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2559A8)),
                                         modifier = Modifier.align(Alignment.End)
                                     ) {
                                         Text(text = "Eliminar", color = Color.White)
@@ -187,6 +148,47 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
                             }
                         }
                     }
+                }
+
+                // Confirmación de eliminación
+                if (showConfirmationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showConfirmationDialog = false },
+                        title = { Text(text = "Confirmar eliminación") },
+                        text = { Text(text = "¿Estás seguro de que deseas eliminar a ${usuarioToDelete?.username}?") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        try {
+                                            isLoading = true
+                                            usuarioToDelete?.let {
+                                                RetrofitInstance.api.deleteUserById(it.id)
+                                                usuarios = usuarios.filterNot { user -> user.id == it.id }
+                                            }
+                                            errorMessage = null
+                                        } catch (e: Exception) {
+                                            errorMessage = "Error al eliminar usuario: ${e.localizedMessage}"
+                                        } finally {
+                                            isLoading = false
+                                            showConfirmationDialog = false
+                                        }
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2559A8))
+                            ) {
+                                Text(text = "Eliminar", color = Color.White)
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showConfirmationDialog = false },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                            ) {
+                                Text(text = "Cancelar", color = Color.White)
+                            }
+                        }
+                    )
                 }
 
                 // Barra inferior
@@ -209,6 +211,7 @@ fun EliminarUsuarioScreen(navController: NavController, isLoggedIn: Boolean, onL
         }
     )
 }
+
 @Preview(showBackground = true)
 @Composable
 fun EliminarUsuarioScreenPreview() {

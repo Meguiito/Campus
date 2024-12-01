@@ -103,7 +103,8 @@ class MainActivity : ComponentActivity() {
                             username = username,
                             email = email,
                             rut = rut,
-                            carrera = carrera
+                            carrera = carrera,
+                            direccion = direccion
                         )
                     }
 
@@ -115,7 +116,9 @@ class MainActivity : ComponentActivity() {
                             onLogout = onLogout,
                             username = username,
                             email = email,
-                            rut = rut
+                            rut = rut,
+                            direccion = direccion,
+                            carrera = carrera
                         )
                     }
 
@@ -180,7 +183,9 @@ class MainActivity : ComponentActivity() {
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             email = email,
-                            username = username
+                            username = username,
+                            carrera = carrera,
+                            direccion = direccion
                         )
                     }
 
@@ -192,7 +197,9 @@ class MainActivity : ComponentActivity() {
                             isLoggedIn = isLoggedIn,
                             onLogout = onLogout,
                             username = username,
-                            email = email
+                            email = email,
+                            carrera = carrera,
+                            direccion = direccion
                         )
                     }
                     // Pantalla de eliminación de usuario

@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String) {
+fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: Boolean, onLogout: () -> Unit,username: String, email: String,carrera:String,direccion:String) {
     var reservas by remember { mutableStateOf<List<ReservaResponse>>(emptyList()) }
     var selectedReserva by remember { mutableStateOf<ReservaResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -79,7 +79,7 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                     label = { Text("Perfil") },
                     selected = false,
                     onClick = {
-                        navController.navigate("perfil/$username/$email/$rut")
+                        navController.navigate("perfil/$username/$email/$rut/$carrera/$direccion")
                         coroutineScope.launch { drawerState.close() }
                     }
                 )
@@ -320,7 +320,7 @@ fun EditarReservaScreen(navController: NavController, rut: String, isLoggedIn: B
                         .fillMaxWidth()
                         .height(50.dp)
                         .align(Alignment.BottomCenter)
-                        .background(Color(0xFF0F0147)),
+                        .background(Color(0xFF000000)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -346,7 +346,9 @@ fun EditarReservaScreenPreview() {
             onLogout = {},
             rut = "",
             username = "",
-            email = ""
+            email = "",
+            carrera = "",
+            direccion = ""
         )
     }
 }

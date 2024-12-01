@@ -27,10 +27,18 @@ import androidx.compose.ui.graphics.Brush
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLogout: () -> Unit, username: String, email: String) {
+fun EliminarCanchaScreen(
+    navController: NavController,
+    isLoggedIn: Boolean,
+    onLogout: () -> Unit,
+    username: String,
+    email: String
+) {
     var canchas by remember { mutableStateOf<List<CanchaResponse2>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var canchaToDelete by remember { mutableStateOf<CanchaResponse2?>(null) }
     val scope = rememberCoroutineScope()
 
     // Obtener la lista de canchas
@@ -98,37 +106,6 @@ fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLo
                         )
                     )
             ) {
-
-
-                // Barra superior
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.TopCenter)
-                        .background(Color(0xFF2559A8)), // Color de la barra superior
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .size(115.dp)
-                            .offset(x = (-5).dp)
-                            .padding(start = 0.dp, top = 10.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                IconButton(
-                    onClick = { scope.launch { drawerState.open() } },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Abrir menú", tint = Color(0xFF2559A8)) // Ícono en el color de la paleta
-                }
-
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
@@ -145,15 +122,14 @@ fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLo
                         verticalArrangement = Arrangement.Top
                     ) {
                         canchas.forEach { cancha ->
-                            // Tarjeta con la información de la cancha
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
                                 shape = MaterialTheme.shapes.large,
                                 elevation = CardDefaults.cardElevation(4.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)), // Tarjeta en un color distintivo
-                                border = BorderStroke(2.dp, Color(0xFF2559A8)) // Borde de la tarjeta
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+                                border = BorderStroke(2.dp, Color(0xFF2559A8))
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp)
@@ -163,24 +139,12 @@ fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLo
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    // Botón para eliminar la cancha
                                     Button(
                                         onClick = {
-                                            scope.launch {
-                                                try {
-                                                    isLoading = true
-                                                    // Llamada para eliminar por nombre
-                                                    RetrofitInstance.api.deleteEspacioByNombre(cancha.nombre)
-                                                    // Recargar la lista de canchas tras la eliminación
-                                                    canchas = RetrofitInstance.api.getAllcanchas()
-                                                } catch (e: Exception) {
-                                                    errorMessage = "Error al eliminar cancha: ${e.localizedMessage}"
-                                                } finally {
-                                                    isLoading = false
-                                                }
-                                            }
+                                            canchaToDelete = cancha
+                                            showConfirmationDialog = true
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2559A8)), // Botón en color de la paleta
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2559A8)),
                                         modifier = Modifier.align(Alignment.End)
                                     ) {
                                         Text(text = "Eliminar", color = Color.White)
@@ -191,7 +155,48 @@ fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLo
                     }
                 }
 
-                // Barra inferior
+                // Confirmación de eliminación
+                if (showConfirmationDialog && canchaToDelete != null) {
+                    AlertDialog(
+                        onDismissRequest = { showConfirmationDialog = false },
+                        title = { Text(text = "Confirmar eliminación") },
+                        text = {
+                            Text(text = "¿Estás seguro de que deseas eliminar la cancha \"${canchaToDelete?.nombre}\"?")
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    scope.launch {
+                                        try {
+                                            isLoading = true
+                                            RetrofitInstance.api.deleteEspacioByNombre(canchaToDelete!!.nombre)
+                                            canchas = RetrofitInstance.api.getAllcanchas()
+                                        } catch (e: Exception) {
+                                            errorMessage = "Error al eliminar cancha: ${e.localizedMessage}"
+                                        } finally {
+                                            isLoading = false
+                                            showConfirmationDialog = false
+                                            canchaToDelete = null
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(text = "Eliminar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    showConfirmationDialog = false
+                                    canchaToDelete = null
+                                }
+                            ) {
+                                Text(text = "Cancelar")
+                            }
+                        }
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,6 +216,7 @@ fun EliminarCanchaScreen(navController: NavController, isLoggedIn: Boolean, onLo
         }
     )
 }
+
 
 @Preview(showBackground = true)
 @Composable

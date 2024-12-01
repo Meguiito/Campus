@@ -34,6 +34,7 @@ fun ReservaScreen(
     mesSeleccionado: String,
     diaSeleccionado: String,
     carrera: String,
+    direccion: String,
     rut: String,
     username: String, email: String
 ) {
@@ -112,7 +113,7 @@ fun ReservaScreen(
                         label = { Text("Perfil") },
                         selected = false,
                         onClick = {
-                            navController.navigate("perfil/$username/$email/$rut")
+                            navController.navigate("perfil/$username/$email/$rut/$carrera/$direccion")
                             coroutineScope.launch { drawerState.close() }
                         }
                     )
@@ -354,7 +355,8 @@ fun ReservaScreenPreview() {
             username = "",
             rut="",
             email = "",
-            carrera = ""
+            carrera = "",
+            direccion = ""
         )
     }
 }

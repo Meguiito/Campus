@@ -18,7 +18,7 @@ import retrofit2.http.Query
 
 
 
-private const val BASE_URL = "http://192.168.1.12:5000/"
+private const val BASE_URL = "http://45.236.129.168:5000/"
 
 
 interface ApiService {

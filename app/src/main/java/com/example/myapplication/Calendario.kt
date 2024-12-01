@@ -41,7 +41,7 @@ fun CalendarScreen(
     isLoggedIn: Boolean,
     onLogout: () -> Unit,
     username: String,
-    email: String,
+    email: String,carrera:String,direccion:String,
     rut: String
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -97,7 +97,7 @@ fun CalendarScreen(
                         label = { Text("Perfil") },
                         selected = false,
                         onClick = {
-                            navController.navigate("perfil/$username/$email/$rut")
+                            navController.navigate("perfil/$username/$email/$rut/$carrera/$direccion")
                             coroutineScope.launch { drawerState.close() }
                         }
                     )
@@ -276,7 +276,9 @@ fun CalendarScreenPreview() {
             onLogout = {},
             username = "",
             email = "",
-            rut = ""
+            rut = "",
+            carrera = "",
+            direccion = ""
         )
     }
 }
